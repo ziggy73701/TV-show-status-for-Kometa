@@ -1,0 +1,197 @@
+sonarr_url: 'http://localhost:8989'
+sonarr_api_key: 'YOUR_SONARR_API_KEY'
+
+skip_unmonitored: true
+
+################################################################################
+##########                        NEW SEASON:                         ##########
+################################################################################
+
+future_days_new_season: 31
+collection_name_new_season: "New Season"
+sort_title_new_season: "New Season Soon"
+
+backdrop_new_season:
+  enable: true
+  back_color: "#228B22"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_new_season:
+  date_format: "ddd dd/mm"
+  capitalize_dates: true
+  use_text: "NEW SEASON"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 35
+  font_size: 70
+  font_color: "#FFFFFF"
+
+################################################################################
+##########                     UPCOMING EPISODE:                      ##########
+################################################################################
+
+future_days_upcoming_episode: 31
+collection_name_upcoming_episode: "Upcoming Episode"
+sort_title_upcoming_episode: "Upcoming Episode"
+
+backdrop_upcoming_episode:
+  enable: true
+  back_color: "#006580"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_upcoming_episode:
+  date_format: "ddd dd/mm"
+  capitalize_dates: true
+  use_text: "NEXT EPISODE"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 35
+  font_size: 70
+  font_color: "#FFFFFF"
+  
+################################################################################
+##########                      UPCOMING FINALE:                      ##########
+################################################################################
+
+future_days_upcoming_finale: 31
+collection_name_upcoming_finale: "Upcoming Finale"
+sort_title_upcoming_finale: "Upcoming Finale"
+
+backdrop_upcoming_finale:
+  enable: true
+  back_color: "#9932CC"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_upcoming_finale:
+  date_format: "ddd dd/mm"
+  capitalize_dates: true
+  use_text: "FINALE AIRS"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 35
+  font_size: 70
+  font_color: "#FFFFFF"
+
+################################################################################
+##########                           ENDED:                           ##########
+################################################################################
+
+collection_name_ended: "Ended Shows"
+sort_title_ended: "Ended Shows"
+
+backdrop_ended:
+  enable: false
+  back_color: "#000000"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_ended:
+  use_text: "E N D E D"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 50
+  font_size: 70
+  font_color: "#00ff3d"
+
+################################################################################
+##########                         RETURNING:                         ##########
+################################################################################
+
+collection_name_returning: "Returning Shows"
+sort_title_returning: "Returning Shows"
+
+backdrop_returning:
+  enable: false
+  back_color: "#000000"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_returning:
+  use_text: "R E T U R N I N G"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 50
+  font_size: 70
+  font_color: "#ff9000"
+
+################################################################################
+##########                       SEASON FINALE:                       ##########
+################################################################################
+
+recent_days_season_finale: 21
+collection_name_season_finale: "Season Finale"
+sort_title_season_finale: "Season Finale"
+
+backdrop_season_finale:
+  enable: true
+  back_color: "#ffb902"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_season_finale:
+  use_text: "SEASON FINALE"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 35
+  font_size: 70
+  font_color: "#000000"
+
+################################################################################
+##########                       FINAL EPISODE:                       ##########
+################################################################################
+
+recent_days_final_episode: 21
+collection_name_final_episode: "Final Episode"
+sort_title_final_episode: "Final Episode"
+
+backdrop_final_episode:
+  enable: true
+  back_color: "#ffb902"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_final_episode:
+  use_text: "FINAL EPISODE"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 35
+  font_size: 70
+  font_color: "#000000"
