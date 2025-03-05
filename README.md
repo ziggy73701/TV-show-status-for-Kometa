@@ -26,18 +26,14 @@ Example overlays:
 
 ## 🛠️ Installation
 
-### 1️⃣ Download the script
-Clone the repository:
-```sh
-git clone https://github.com/netplexflix/TV-show-status-for-Kometa.git
-cd TV-show-status-for-Kometa
-```
+### 1️⃣ Download the script*
+Download the script by pressing the green 'Code' button above and then 'Download Zip'*.
 
-![#c5f015](https://placehold.co/15x15/c5f015/c5f015.png) Or simply download by pressing the green 'Code' button above and then 'Download Zip'.
+### 2️⃣ Extract or move the files to a 'TSSK' folder*
+Put the files in this subfolder. (`config.example.yml`, `TSSK.py` and `requirements.txt`)*
 
-### 2️⃣ Extract or move the files to a 'TSSK' folder
-- Put the files in this subfolder. (`config.example.yml`, `TSSK.py` and `requirements.txt`)
-
+\* Or clone the repo
+  
 ### 3️⃣ Install Dependencies
 - Ensure you have [Python](https://www.python.org/downloads/) installed (`>=3.9`). <br/>
 - Open a Terminal in the script's directory
