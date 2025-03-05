@@ -35,9 +35,7 @@ cd TV-show-status-for-Kometa
 
 ![#c5f015](https://placehold.co/15x15/c5f015/c5f015.png) Or simply download by pressing the green 'Code' button above and then 'Download Zip'.
 
-### 2️⃣ Extract or move the files to a 'TSSK' subfolder in your Kometa config folder
-- Go to your Kometa install folder, then config.
-- Create a subfolder named TSSK.
+### 2️⃣ Extract or move the files to a 'TSSK' folder
 - Put the files in this subfolder. (`config.example.yml`, `TSSK.py` and `requirements.txt`)
 
 ### 3️⃣ Install Dependencies
@@ -52,7 +50,7 @@ pip install -r requirements.txt
 ```
 
 ### 4️⃣ Edit your Kometa config
-- Open your Kometa config.yml (config/config.yml, NOT config/TSSK/config.yml)
+- Open your Kometa config.yml (Kometa/config/config.yml, NOT /TSSK/config.yml)
 - Under your TV Show library settings, add the paths to the collection and/or overlay .yml files you would like to use.</br>
   (These files will be created in your TSSK folder when you run the script).<br/>
 
@@ -82,17 +80,17 @@ TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
   ```
   TV Shows:
     collection_files:
-    - file: P:/Kometa/config/TSSK/TSSK_TV_COLLECTION.yml
+    - file: P://TSSK/TSSK_TV_COLLECTION.yml
     overlay_files:
-    - file: P:/KOMETA/config/TSSK/TSSK_TV_NEW_SEASON_OVERLAYS.yml
-    - file: P:/KOMETA/config/TSSK/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
-    - file: P:/KOMETA/config/TSSK/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
-    - file: P:/KOMETA/config/TSSK/TSSK_TV_ENDED_OVERLAYS.yml
-    - file: P:/KOMETA/config/TSSK/TSSK_TV_RETURNING_OVERLAYS.yml
-    - file: P:/KOMETA/config/TSSK/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
-    - file: P:/KOMETA/config/TSSK/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
+    - file: P:/TSSK/TSSK_TV_NEW_SEASON_OVERLAYS.yml
+    - file: P:/TSSK/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
+    - file: P:/TSSK/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
+    - file: P:/TSSK/TSSK_TV_ENDED_OVERLAYS.yml
+    - file: P:/TSSK/TSSK_TV_RETURNING_OVERLAYS.yml
+    - file: P:/TSSK/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
+    - file: P:/TSSK/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
   ```
->[!NOTE]
+>[!TIP]
 >Only add the files to the Kometa config for which you want to create collections or overlays<br/>
 
 ### 5️⃣ Edit your configuration file
@@ -105,18 +103,28 @@ Rename `config.example.yml` to `config.yml` and edit the needed settings:
 - **sonarr_api_key:** Can be found in Sonarr under settings => General => Security.
 - **skip_unmonitored:** Default `true` will skip a show if the upcoming season/episode is unmonitored.
 </br>
-</br>
 
 For each category, you can change the relevant settings:
 - **future_days:** How many days into the future the script should look.
 - **recent_days:** How many days in the past the script should look (for aired Finales)
-- **collection_name:** The name of the collection.
-- **sort_title:** Collection sort title.
-- **backdrop:** Change backdrop (the colored banner behind the text) size, color and positioning. [More info here](https://kometa.wiki/en/latest/files/overlays/?h=overlay#backdrop-overlay)
-- **text:** Change text color and positioning. [More info here](https://kometa.wiki/en/latest/files/overlays/?h=overlay#text-overlay)
+
+- **collection block:**
+  - **collection_name:** The name of the collection.
+  - **sort_title:** Collection sort title.
+  - etc
+>[!TIP]
+>You can enter any other Kometa variables in this block and they will be automatically added in the generated .yml files.</br>
+>`collection_name` is used to name the collection and will be stripped from the collection block.
+  
+- **backdrop block:**
+  - **enable:** whether or not you want a backdrop (the colored banner behind the text)
+  - Change backdrop size, color and positioning. You can add any relevant variables here. [More info here](https://kometa.wiki/en/latest/files/overlays/?h=overlay#backdrop-overlay)
+    
+- **text block:** 
   - **date_format:** The date format to be used on the overlays. e.g.: "yyyy-mm-dd", "mm/dd", "dd/mm", etc.
   - **capitalize_dates:** `true` will capitalize letters in dates.
   - **use_text:** Text to be used on the overlays before the date. e.h.: "NEW SEASON"
+  - Change text color and positioning. You can add any relevant variables here. [More info here](https://kometa.wiki/en/latest/files/overlays/?h=overlay#text-overlay)
 
 
 >[!NOTE]
@@ -152,7 +160,7 @@ The previous configuration will be erased so Kometa will automatically remove ov
 >
 > For example:
 > ```
->"C:\Users\User1\AppData\Local\Programs\Python\Python311\python.exe" "P:\Kometa\config\TSSK\TSSK.py" -r
+>"C:\Users\User1\AppData\Local\Programs\Python\Python311\python.exe" "P:\TSSK\TSSK.py" -r
 >pause
 > ```
 > Save as a .bat file. You can now double click this batch file to directly launch the script.<br/>
