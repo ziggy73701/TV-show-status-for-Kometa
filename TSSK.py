@@ -1,11 +1,11 @@
 import requests
 import yaml
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 import sys
 import os
 
-VERSION = "1.0"
+VERSION = "1.1"
 
 # ANSI color codes
 GREEN = '\033[32m'
@@ -16,7 +16,6 @@ RESET = '\033[0m'
 BOLD = '\033[1m'
 
 def check_for_updates():
-    """Check for updates to TSSK from GitHub repository"""
     print(f"Checking for updates to TSSK {VERSION}...")
     
     try:
@@ -29,7 +28,13 @@ def check_for_updates():
         latest_release = response.json()
         latest_version = latest_release.get("tag_name", "").lstrip("v")
         
-        if latest_version and latest_version != VERSION:
+        def parse_version(version_str):
+            return tuple(map(int, version_str.split('.')))
+        
+        current_version_tuple = parse_version(VERSION)
+        latest_version_tuple = parse_version(latest_version)
+        
+        if latest_version and latest_version_tuple > current_version_tuple:
             print(f"{ORANGE}A newer version of TSSK is available: {latest_version}{RESET}")
             print(f"{ORANGE}Download: {latest_release.get('html_url', '')}{RESET}")
             print(f"{ORANGE}Release notes: {latest_release.get('body', 'No release notes available')}{RESET}\n")
@@ -115,7 +120,7 @@ def get_sonarr_episodes(sonarr_url, api_key, series_id):
         sys.exit(1)
 
 def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmonitored=False):
-    cutoff_date = datetime.now(UTC) + timedelta(days=future_days_new_season)
+    cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_new_season)
     matched_shows = []
     skipped_shows = []
     
@@ -130,12 +135,12 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
             if not air_date_str:
                 continue
             
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
+            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
             
-            if air_date > datetime.now(UTC):
+            if air_date > datetime.now(timezone.utc):
                 future_episodes.append(ep)
         
-        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=UTC))
+        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=timezone.utc))
         
         if not future_episodes:
             continue
@@ -146,7 +151,7 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
         if not air_date_next_str:
             continue
         
-        air_date_next = datetime.fromisoformat(air_date_next_str.replace('Z','')).replace(tzinfo=UTC)
+        air_date_next = datetime.fromisoformat(air_date_next_str.replace('Z','')).replace(tzinfo=timezone.utc)
         
         if (
             next_future['seasonNumber'] >= 1
@@ -183,7 +188,7 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
 
 def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_episode, skip_unmonitored=False):
     """Find shows with upcoming non-premiere, non-finale episodes within the specified days"""
-    cutoff_date = datetime.now(UTC) + timedelta(days=future_days_upcoming_episode)
+    cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_upcoming_episode)
     matched_shows = []
     skipped_shows = []
     
@@ -211,12 +216,12 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
             if not air_date_str:
                 continue
             
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
+            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
             
-            if air_date > datetime.now(UTC) and air_date <= cutoff_date:
+            if air_date > datetime.now(timezone.utc) and air_date <= cutoff_date:
                 future_episodes.append(ep)
         
-        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=UTC))
+        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=timezone.utc))
         
         if not future_episodes:
             continue
@@ -238,7 +243,7 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
         if not air_date_str:
             continue
         
-        air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
+        air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
         
         tvdb_id = series.get('tvdbId')
         air_date_str_yyyy_mm_dd = air_date.date().isoformat()
@@ -270,7 +275,7 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
 
 def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, skip_unmonitored=False):
     """Find shows with upcoming season finales within the specified days"""
-    cutoff_date = datetime.now(UTC) + timedelta(days=future_days_upcoming_finale)
+    cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_upcoming_finale)
     matched_shows = []
     skipped_shows = []
     
@@ -298,12 +303,12 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, skip
             if not air_date_str:
                 continue
             
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
+            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
             
-            if air_date > datetime.now(UTC) and air_date <= cutoff_date:
+            if air_date > datetime.now(timezone.utc) and air_date <= cutoff_date:
                 future_episodes.append(ep)
         
-        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=UTC))
+        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=timezone.utc))
         
         if not future_episodes:
             continue
@@ -321,7 +326,7 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, skip
         if not air_date_str:
             continue
         
-        air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
+        air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
         
         tvdb_id = series.get('tvdbId')
         air_date_str_yyyy_mm_dd = air_date.date().isoformat()
@@ -373,8 +378,8 @@ def find_ended_shows(sonarr_url, api_key):
                     continue
                     
                 if air_date_str:
-                    air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
-                    if air_date > datetime.now(UTC):
+                    air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
+                    if air_date > datetime.now(timezone.utc):
                         has_future_regular_episodes = True
                         break
             
@@ -417,7 +422,7 @@ def find_returning_shows(sonarr_url, api_key, excluded_tvdb_ids):
 
 def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale):
     """Find shows with status 'continuing' that had a season finale air within the specified days"""
-    cutoff_date = datetime.now(UTC) - timedelta(days=recent_days_season_finale)
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=recent_days_season_finale)
     matched_shows = []
     
     all_series = get_sonarr_series(sonarr_url, api_key)
@@ -465,10 +470,10 @@ def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale):
             if not has_file:
                 continue
                 
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
+            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
             
             # Check if it aired within the recent period
-            if air_date <= datetime.now(UTC) and air_date >= cutoff_date:
+            if air_date <= datetime.now(timezone.utc) and air_date >= cutoff_date:
                 tvdb_id = series.get('tvdbId')
                 air_date_str_yyyy_mm_dd = air_date.date().isoformat()
                 
@@ -487,7 +492,7 @@ def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale):
 
 def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode):
     """Find shows with status 'ended' that had their final episode air within the specified days"""
-    cutoff_date = datetime.now(UTC) - timedelta(days=recent_days_final_episode)
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=recent_days_final_episode)
     matched_shows = []
     
     all_series = get_sonarr_series(sonarr_url, api_key)
@@ -509,8 +514,8 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode):
                 continue
                 
             if air_date_str:
-                air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
-                if air_date > datetime.now(UTC):
+                air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
+                if air_date > datetime.now(timezone.utc):
                     has_future_episodes = True
                     break
         
@@ -531,8 +536,8 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode):
                 continue
                 
             if air_date_str:
-                air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=UTC)
-                if air_date <= datetime.now(UTC) and (latest_date is None or air_date > latest_date):
+                air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
+                if air_date <= datetime.now(timezone.utc) and (latest_date is None or air_date > latest_date):
                     latest_date = air_date
                     latest_episode = ep
         
@@ -558,7 +563,6 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode):
 def format_date(yyyy_mm_dd, date_format, capitalize=False):
     dt_obj = datetime.strptime(yyyy_mm_dd, "%Y-%m-%d")
     
-    # Create mapping for our custom format specifiers to strftime format codes
     format_mapping = {
         'mmm': '%b',    # Abbreviated month name
         'mmmm': '%B',   # Full month name
@@ -687,6 +691,14 @@ def create_overlay_yaml(output_file, shows, config_sections):
 def create_collection_yaml(output_file, shows, config):
     import yaml
     from yaml.representer import SafeRepresenter
+    from copy import deepcopy
+    from collections import OrderedDict
+
+    # Add representer for OrderedDict
+    def represent_ordereddict(dumper, data):
+        return dumper.represent_mapping('tag:yaml.org,2002:map', data.items())
+    
+    yaml.add_representer(OrderedDict, represent_ordereddict, Dumper=yaml.SafeDumper)
 
     if not shows:
         with open(output_file, "w", encoding="utf-8") as f:
@@ -700,46 +712,44 @@ def create_collection_yaml(output_file, shows, config):
     # Convert to comma-separated
     tvdb_ids_str = ", ".join(str(i) for i in sorted(tvdb_ids))
 
-    # Determine collection type based on output file name
+    # Determine collection type and get the appropriate config section
+    collection_config = {}
+    collection_name = ""
+    
     if "SEASON_FINALE" in output_file:
-        collection_name = config.get("collection_name_season_finale", "Season Finale")
-        sort_title_value = config.get("sort_title_season_finale", "+1_2Season Finale")
-        recent_days = config.get("recent_days_season_finale", 14)
-        summary = f"Shows for which a Season Finale has aired within the past {recent_days} days"
+        config_key = "collection_season_finale"
+        summary = f"Shows with a season finale that aired within the past {config.get('recent_days_season_finale', 21)} days"
     elif "FINAL_EPISODE" in output_file:
-        collection_name = config.get("collection_name_final_episode", "Final Episode")
-        sort_title_value = config.get("sort_title_final_episode", "+1_2Final Episode")
-        recent_days = config.get("recent_days_final_episode", 14)
-        summary = f"Shows for which a Final Episode has aired within the past {recent_days} days"
+        config_key = "collection_final_episode"
+        summary = f"Shows with a final episode that aired within the past {config.get('recent_days_final_episode', 21)} days"
     elif "NEW_SEASON" in output_file:
-        collection_name = config.get("collection_name_new_season", "New Season Soon")
-        sort_title_value = config.get("sort_title_new_season", "+1_2New Season Soon")
-        future_days = config.get("future_days_new_season", config.get("future_days", 21))
-        summary = f"Shows with a new season starting within {future_days} days"
+        config_key = "collection_new_season"
+        summary = f"Shows with a new season starting within {config.get('future_days_new_season', 31)} days"
     elif "UPCOMING_EPISODE" in output_file:
-        collection_name = config.get("collection_name_upcoming_episode", "Upcoming Episode")
-        sort_title_value = config.get("sort_title_upcoming_episode", "+1_3Upcoming Episode")
-        future_days = config.get("future_days_upcoming_episode", config.get("future_days", 21))
-        summary = f"Shows with an upcoming episode within {future_days} days"
+        config_key = "collection_upcoming_episode"
+        summary = f"Shows with an upcoming episode within {config.get('future_days_upcoming_episode', 31)} days"
     elif "UPCOMING_FINALE" in output_file:
-        collection_name = config.get("collection_name_upcoming_finale", "Season Finale Soon")
-        sort_title_value = config.get("sort_title_upcoming_finale", "+1_4Season Finale Soon")
-        future_days = config.get("future_days_upcoming_finale", config.get("future_days", 21))
-        summary = f"Shows with a season finale within {future_days} days"
+        config_key = "collection_upcoming_finale"
+        summary = f"Shows with a season finale within {config.get('future_days_upcoming_finale', 31)} days"
     elif "ENDED" in output_file:
-        collection_name = config.get("collection_name_ended", "Series Ended")
-        sort_title_value = config.get("sort_title_ended", "+1_5Series Ended")
+        config_key = "collection_ended"
         summary = "Shows that have completed their run"
     elif "RETURNING" in output_file:
-        collection_name = config.get("collection_name_returning", "Returning Shows")
-        sort_title_value = config.get("sort_title_returning", "+1_2Returning Shows")
+        config_key = "collection_returning"
         summary = "Returning Shows without upcoming episodes within the chosen timeframes"
     else:
         # Default fallback
-        collection_name = config.get("collection_name", "TV Collection")
-        sort_title_value = config.get("sort_title", "+1_9TV Collection")
+        config_key = None
+        collection_name = "TV Collection"
         summary = "TV Collection"
-
+    
+    # Get the collection configuration if available
+    if config_key and config_key in config:
+        # Create a deep copy to avoid modifying the original config
+        collection_config = deepcopy(config[config_key])
+        # Extract the collection name and remove it from the config
+        collection_name = collection_config.pop("collection_name", "TV Collection")
+    
     class QuotedString(str):
         pass
 
@@ -748,18 +758,44 @@ def create_collection_yaml(output_file, shows, config):
 
     yaml.add_representer(QuotedString, quoted_str_presenter, Dumper=yaml.SafeDumper)
 
-    # Convert our sort_title_value into a QuotedString
-    # so PyYAML forces quotes in the output
-    sort_title_quoted = QuotedString(sort_title_value)
+    # Create the collection data structure as a regular dict
+    collection_data = {}
+    collection_data["summary"] = summary
+    
+    # Add all remaining parameters from the collection config
+    for key, value in collection_config.items():
+        # If it's a sort_title, make it a QuotedString
+        if key == "sort_title":
+            collection_data[key] = QuotedString(value)
+        else:
+            collection_data[key] = value
+    
+    # Add sync_mode after the config parameters
+    collection_data["sync_mode"] = "sync"
+    
+    # Add tvdb_show as the last item
+    collection_data["tvdb_show"] = tvdb_ids_str
+
+    # Create the final structure with ordered keys
+    ordered_collection = OrderedDict()
+    
+    # Add keys in the desired order
+    ordered_collection["summary"] = collection_data["summary"]
+    if "sort_title" in collection_data:
+        ordered_collection["sort_title"] = collection_data["sort_title"]
+    
+    # Add all other keys except sync_mode and tvdb_show
+    for key, value in collection_data.items():
+        if key not in ["summary", "sort_title", "sync_mode", "tvdb_show"]:
+            ordered_collection[key] = value
+    
+    # Add sync_mode and tvdb_show at the end
+    ordered_collection["sync_mode"] = collection_data["sync_mode"]
+    ordered_collection["tvdb_show"] = collection_data["tvdb_show"]
 
     data = {
         "collections": {
-            collection_name: {
-                "summary": summary,
-                "sort_title": sort_title_quoted,
-                "sync_mode": "sync",
-                "tvdb_show": tvdb_ids_str
-            }
+            collection_name: ordered_collection
         }
     }
 
@@ -780,7 +816,7 @@ def main():
         sonarr_api_key = config['sonarr_api_key']
         
         # Get category-specific future_days values, with fallback to main future_days
-        future_days = config.get('future_days', 21)  # Default fallback
+        future_days = config.get('future_days', 14)
         future_days_new_season = config.get('future_days_new_season', future_days)
         future_days_upcoming_episode = config.get('future_days_upcoming_episode', future_days)
         future_days_upcoming_finale = config.get('future_days_upcoming_finale', future_days)
@@ -971,7 +1007,6 @@ def main():
         # Calculate and display runtime
         end_time = datetime.now()
         runtime = end_time - start_time
-        # Convert to hours, minutes, seconds
         hours, remainder = divmod(runtime.total_seconds(), 3600)
         minutes, seconds = divmod(remainder, 60)
         runtime_formatted = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
