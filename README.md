@@ -26,15 +26,18 @@ Example overlays:
 
 ## 🛠️ Installation
 
-### 1️⃣ Download the script*
-Download the script by pressing the green 'Code' button above and then 'Download Zip'*.
+### 1️⃣ Clone the repo:
 
-### 2️⃣ Extract or move the files to a 'TSSK' folder*
-Put the files in this subfolder. (`config.example.yml`, `TSSK.py` and `requirements.txt`)*
+```sh
+git clone https://github.com/netplexflix/TV-show-status-for-Kometa.git
+cd TV-show-status-for-Kometa
+```
 
-\* Or clone the repo
+>[!TIP]
+>If you don't know what that means, then simply download the script by pressing the green 'Code' button above and then 'Download Zip'.
+> Extract the files to your desired folder
   
-### 3️⃣ Install Dependencies
+### 2️⃣ Install Dependencies
 - Ensure you have [Python](https://www.python.org/downloads/) installed (`>=3.9`). <br/>
 - Open a Terminal in the script's directory
 >[!TIP]
@@ -45,7 +48,7 @@ Put the files in this subfolder. (`config.example.yml`, `TSSK.py` and `requireme
 pip install -r requirements.txt
 ```
 
-### 4️⃣ Edit your Kometa config
+### 3️⃣ Edit your Kometa config
 - Open your Kometa config.yml (Kometa/config/config.yml, NOT /TSSK/config.yml)
 - Under your TV Show library settings, add the paths to the collection and/or overlay .yml files you would like to use.</br>
   (These files will be created in your TSSK folder when you run the script).<br/>
@@ -76,7 +79,7 @@ TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
   ```
   TV Shows:
     collection_files:
-    - file: P://TSSK/TSSK_TV_COLLECTION.yml
+    - file: P:/TSSK/TSSK_TV_COLLECTION.yml
     overlay_files:
     - file: P:/TSSK/TSSK_TV_NEW_SEASON_OVERLAYS.yml
     - file: P:/TSSK/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
@@ -89,7 +92,7 @@ TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
 >[!TIP]
 >Only add the files to the Kometa config for which you want to create collections or overlays<br/>
 
-### 5️⃣ Edit your configuration file
+### 4️⃣ Edit your configuration file
 ---
 
 ## ⚙️ Configuration
