@@ -109,6 +109,7 @@ For each category, you can change the relevant settings:
 
 - **collection block:**
   - **collection_name:** The name of the collection.
+  - **smart_label:** Choose the sorting option. [More info here](https://metamanager.wiki/en/latest/files/builders/smart/#sort-options)
   - **sort_title:** Collection sort title.
   - etc
 >[!TIP]
