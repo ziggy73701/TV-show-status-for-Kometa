@@ -5,7 +5,7 @@ from collections import defaultdict
 import sys
 import os
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 # ANSI color codes
 GREEN = '\033[32m'
@@ -153,8 +153,10 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
         
         air_date_next = datetime.fromisoformat(air_date_next_str.replace('Z','')).replace(tzinfo=timezone.utc)
         
+        # Check if this is a new season starting (episode 1 of any season)
+        # AND check that it's not a completely new show (season 1)
         if (
-            next_future['seasonNumber'] >= 1
+            next_future['seasonNumber'] > 1
             and next_future['episodeNumber'] == 1
             and not next_future['hasFile']
             and air_date_next <= cutoff_date
@@ -183,6 +185,25 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
                     continue
             
             matched_shows.append(show_dict)
+        # If it's a completely new show (Season 1), add it to skipped shows for reporting
+        elif (
+            next_future['seasonNumber'] == 1
+            and next_future['episodeNumber'] == 1
+            and not next_future['hasFile']
+            and air_date_next <= cutoff_date
+        ):
+            tvdb_id = series.get('tvdbId')
+            air_date_str_yyyy_mm_dd = air_date_next.date().isoformat()
+
+            show_dict = {
+                'title': series['title'],
+                'seasonNumber': next_future['seasonNumber'],
+                'airDate': air_date_str_yyyy_mm_dd,
+                'tvdbId': tvdb_id,
+                'reason': "New show (Season 1)"  # Add reason for skipping
+            }
+            
+            skipped_shows.append(show_dict)
     
     return matched_shows, skipped_shows
 
@@ -700,18 +721,6 @@ def create_collection_yaml(output_file, shows, config):
     
     yaml.add_representer(OrderedDict, represent_ordereddict, Dumper=yaml.SafeDumper)
 
-    if not shows:
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write("#No matching shows found")
-        return
-    
-    tvdb_ids = [s['tvdbId'] for s in shows if s.get('tvdbId')]
-    if not tvdb_ids:
-        return
-
-    # Convert to comma-separated
-    tvdb_ids_str = ", ".join(str(i) for i in sorted(tvdb_ids))
-
     # Determine collection type and get the appropriate config section
     collection_config = {}
     collection_name = ""
@@ -757,6 +766,51 @@ def create_collection_yaml(output_file, shows, config):
         return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='"')
 
     yaml.add_representer(QuotedString, quoted_str_presenter, Dumper=yaml.SafeDumper)
+
+    # Handle the case when no shows are found
+    if not shows:
+        # Create the template for empty collections
+        data = {
+            "collections": {
+                collection_name: {
+                    "plex_search": {
+                        "all": {
+                            "label": collection_name
+                        }
+                    },
+                    "item_label.remove": collection_name,
+					"smart_label": "random"
+                }
+            }
+        }
+        
+        with open(output_file, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, Dumper=yaml.SafeDumper, sort_keys=False)
+        return
+    
+    tvdb_ids = [s['tvdbId'] for s in shows if s.get('tvdbId')]
+    if not tvdb_ids:
+        # Create the template for empty collections
+        data = {
+            "collections": {
+                collection_name: {
+                    "plex_search": {
+                        "all": {
+                            "label": collection_name
+                        }
+                    },
+                    "non_item_remove_label": collection_name,
+                    "build_collection": False
+                }
+            }
+        }
+        
+        with open(output_file, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, Dumper=yaml.SafeDumper, sort_keys=False)
+        return
+
+    # Convert to comma-separated
+    tvdb_ids_str = ", ".join(str(i) for i in sorted(tvdb_ids))
 
     # Create the collection data structure as a regular dict
     collection_data = {}
@@ -901,7 +955,7 @@ def main():
             for show in matched_shows:
                 print(f"- {show['title']} (Season {show['seasonNumber']}) airs on {show['airDate']}")
         else:
-            print(f"{RED}No shows with new seasons starting within {future_days_new_season} days.{RESET}")
+            print(f"\n{RED}No shows with new seasons starting within {future_days_new_season} days.{RESET}")
         
         if skipped_shows:
             print(f"\n{ORANGE}Skipped shows (unmonitored season):{RESET}")

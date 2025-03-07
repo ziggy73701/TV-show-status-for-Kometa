@@ -10,9 +10,10 @@ skip_unmonitored: true
 future_days_new_season: 31
 
 collection_new_season:
-  collection_name: "New Season"
-  sort_title: "New Season Soon"
-  collection_order: title.asc
+  collection_name: "New Season Soon"
+  smart_label: title.desc
+  sort_title: "+1_2New Season Soon"
+  ignore_blank_results: true
 
 backdrop_new_season:
   enable: true
@@ -43,9 +44,10 @@ future_days_upcoming_episode: 31
 
 collection_upcoming_episode:
   collection_name: "Upcoming Episode"
-  sort_title: "Upcoming Episode"
-  collection_order: title.asc
-
+  smart_label: title.desc
+  sort_title: "+1_2Upcoming Episode"
+  ignore_blank_results: true
+  
 backdrop_upcoming_episode:
   enable: true
   back_color: "#006580"
@@ -75,9 +77,10 @@ future_days_upcoming_finale: 31
 
 collection_upcoming_finale:
   collection_name: "Upcoming Finale"
-  sort_title: "Upcoming Finale"
-  collection_order: title.asc
-
+  smart_label: title.desc
+  sort_title: "+1_2Upcoming Finale"
+  ignore_blank_results: true
+  
 backdrop_upcoming_finale:
   enable: true
   back_color: "#9932CC"
@@ -89,7 +92,7 @@ backdrop_upcoming_finale:
   vertical_offset: 20
 
 text_upcoming_finale:
-  date_format: "ddd dd/mm"      # e.g., "yyyy-mm-dd", "mm/dd", "dd/mm", etc.
+  date_format: "ddd dd/mm"
   capitalize_dates: true
   use_text: "FINALE AIRS"
   horizontal_align: center
@@ -105,8 +108,9 @@ text_upcoming_finale:
 
 collection_ended:
   collection_name: "Ended Shows"
-  sort_title: "Ended Shows"
-  collection_order: title.asc
+  smart_label: title.desc
+  sort_title: "+1_2Ended Shows"
+  ignore_blank_results: true
 
 backdrop_ended:
   enable: false
@@ -133,8 +137,9 @@ text_ended:
 
 collection_returning:
   collection_name: "Returning Shows"
-  sort_title: "Returning Shows"
-  collection_order: title.asc
+  smart_label: title.desc
+  sort_title: "+1_2Returning Shows"
+  ignore_blank_results: true
 
 backdrop_returning:
   enable: false
@@ -159,12 +164,13 @@ text_returning:
 ##########                       SEASON FINALE:                       ##########
 ################################################################################
 
-recent_days_season_finale: 21
+recent_days_season_finale: 7
 
 collection_season_finale:
   collection_name: "Season Finale"
-  sort_title: "Season Finale"
-  collection_order: title.asc
+  smart_label: title.desc
+  sort_title: "+1_2Season Finale"
+  ignore_blank_results: true
 
 backdrop_season_finale:
   enable: true
@@ -193,8 +199,9 @@ recent_days_final_episode: 21
 
 collection_final_episode:
   collection_name: "Final Episode"
-  sort_title: "Final Episode"
-  collection_order: title.asc
+  smart_label: title.desc
+  sort_title: "+1_2Final Episode"
+  ignore_blank_results: true
 
 backdrop_final_episode:
   enable: true
