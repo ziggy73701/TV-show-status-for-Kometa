@@ -5,7 +5,7 @@ from collections import defaultdict
 import sys
 import os
 
-VERSION = "1.2"
+VERSION = "1.3"
 
 # ANSI color codes
 GREEN = '\033[32m'
@@ -131,6 +131,11 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
         
         future_episodes = []
         for ep in episodes:
+            # Skip specials (season 0)
+            season_number = ep.get('seasonNumber', 0)
+            if season_number == 0:
+                continue
+                
             air_date_str = ep.get('airDateUtc')
             if not air_date_str:
                 continue
@@ -233,6 +238,11 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
         
         future_episodes = []
         for ep in episodes:
+            # Skip specials (season 0)
+            season_number = ep.get('seasonNumber', 0)
+            if season_number == 0:
+                continue
+                
             air_date_str = ep.get('airDateUtc')
             if not air_date_str:
                 continue
@@ -320,6 +330,11 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, skip
         
         future_episodes = []
         for ep in episodes:
+            # Skip specials (season 0)
+            season_number = ep.get('seasonNumber', 0)
+            if season_number == 0:
+                continue
+                
             air_date_str = ep.get('airDateUtc')
             if not air_date_str:
                 continue
@@ -779,7 +794,8 @@ def create_collection_yaml(output_file, shows, config):
                         }
                     },
                     "item_label.remove": collection_name,
-					"smart_label": "random"
+					"smart_label": "random",
+					"build_collection": False
                 }
             }
         }
@@ -856,6 +872,7 @@ def create_collection_yaml(output_file, shows, config):
     with open(output_file, "w", encoding="utf-8") as f:
         # Use SafeDumper so our custom representer is used
         yaml.dump(data, f, Dumper=yaml.SafeDumper, sort_keys=False)
+
 
 def main():
     start_time = datetime.now()
@@ -958,7 +975,7 @@ def main():
             print(f"\n{RED}No shows with new seasons starting within {future_days_new_season} days.{RESET}")
         
         if skipped_shows:
-            print(f"\n{ORANGE}Skipped shows (unmonitored season):{RESET}")
+            print(f"\n{ORANGE}Skipped shows (unmonitored or new show):{RESET}")
             for show in skipped_shows:
                 print(f"- {show['title']} (Season {show['seasonNumber']}) airs on {show['airDate']}")
 
