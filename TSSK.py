@@ -5,7 +5,7 @@ from collections import defaultdict
 import sys
 import os
 
-VERSION = "1.3"
+VERSION = "1.4"
 
 # ANSI color codes
 GREEN = '\033[32m'
@@ -67,6 +67,18 @@ def load_config(file_path='config.yml'):
         print(f"Error parsing YAML config file: {e}")
         sys.exit(1)
 
+def convert_utc_to_local(utc_date_str, utc_offset):
+    if not utc_date_str:
+        return None
+        
+    # Remove 'Z' if present and parse the datetime
+    clean_date_str = utc_date_str.replace('Z', '')
+    utc_date = datetime.fromisoformat(clean_date_str).replace(tzinfo=timezone.utc)
+    
+    # Apply the UTC offset
+    local_date = utc_date + timedelta(hours=utc_offset)
+    return local_date
+
 def process_sonarr_url(base_url, api_key):
     base_url = base_url.rstrip('/')
     
@@ -119,7 +131,7 @@ def get_sonarr_episodes(sonarr_url, api_key, series_id):
         print(f"{RED}Error fetching episodes from Sonarr: {str(e)}{RESET}")
         sys.exit(1)
 
-def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmonitored=False):
+def find_new_season_shows(sonarr_url, api_key, future_days_new_season, utc_offset=0, skip_unmonitored=False):
     cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_new_season)
     matched_shows = []
     skipped_shows = []
@@ -140,23 +152,17 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
             if not air_date_str:
                 continue
             
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
+            air_date = convert_utc_to_local(air_date_str, utc_offset)
             
-            if air_date > datetime.now(timezone.utc):
-                future_episodes.append(ep)
+            if air_date > datetime.now(timezone.utc) + timedelta(hours=utc_offset):
+                future_episodes.append((ep, air_date))
         
-        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=timezone.utc))
+        future_episodes.sort(key=lambda x: x[1])
         
         if not future_episodes:
             continue
         
-        next_future = future_episodes[0]
-        
-        air_date_next_str = next_future.get('airDateUtc')
-        if not air_date_next_str:
-            continue
-        
-        air_date_next = datetime.fromisoformat(air_date_next_str.replace('Z','')).replace(tzinfo=timezone.utc)
+        next_future, air_date_next = future_episodes[0]
         
         # Check if this is a new season starting (episode 1 of any season)
         # AND check that it's not a completely new show (season 1)
@@ -212,7 +218,7 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, skip_unmo
     
     return matched_shows, skipped_shows
 
-def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_episode, skip_unmonitored=False):
+def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_episode, utc_offset=0, skip_unmonitored=False):
     """Find shows with upcoming non-premiere, non-finale episodes within the specified days"""
     cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_upcoming_episode)
     matched_shows = []
@@ -247,17 +253,18 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
             if not air_date_str:
                 continue
             
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
+            air_date = convert_utc_to_local(air_date_str, utc_offset)
             
-            if air_date > datetime.now(timezone.utc) and air_date <= cutoff_date:
-                future_episodes.append(ep)
+            now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
+            if air_date > now_local and air_date <= cutoff_date:
+                future_episodes.append((ep, air_date))
         
-        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=timezone.utc))
+        future_episodes.sort(key=lambda x: x[1])
         
         if not future_episodes:
             continue
         
-        next_future = future_episodes[0]
+        next_future, air_date = future_episodes[0]
         season_num = next_future.get('seasonNumber')
         episode_num = next_future.get('episodeNumber')
         
@@ -269,12 +276,6 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
         is_episode_finale = season_num in season_finales and episode_num == season_finales[season_num]
         if is_episode_finale:
             continue
-        
-        air_date_str = next_future.get('airDateUtc')
-        if not air_date_str:
-            continue
-        
-        air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
         
         tvdb_id = series.get('tvdbId')
         air_date_str_yyyy_mm_dd = air_date.date().isoformat()
@@ -304,7 +305,7 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
     
     return matched_shows, skipped_shows
 
-def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, skip_unmonitored=False):
+def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, utc_offset=0, skip_unmonitored=False):
     """Find shows with upcoming season finales within the specified days"""
     cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_upcoming_finale)
     matched_shows = []
@@ -339,17 +340,18 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, skip
             if not air_date_str:
                 continue
             
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
+            air_date = convert_utc_to_local(air_date_str, utc_offset)
             
-            if air_date > datetime.now(timezone.utc) and air_date <= cutoff_date:
-                future_episodes.append(ep)
+            now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
+            if air_date > now_local and air_date <= cutoff_date:
+                future_episodes.append((ep, air_date))
         
-        future_episodes.sort(key=lambda x: datetime.fromisoformat(x['airDateUtc'].replace('Z','')).replace(tzinfo=timezone.utc))
+        future_episodes.sort(key=lambda x: x[1])
         
         if not future_episodes:
             continue
         
-        next_future = future_episodes[0]
+        next_future, air_date = future_episodes[0]
         season_num = next_future.get('seasonNumber')
         episode_num = next_future.get('episodeNumber')
         
@@ -357,12 +359,6 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, skip
         is_episode_finale = season_num in season_finales and episode_num == season_finales[season_num]
         if not is_episode_finale:
             continue
-        
-        air_date_str = next_future.get('airDateUtc')
-        if not air_date_str:
-            continue
-        
-        air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
         
         tvdb_id = series.get('tvdbId')
         air_date_str_yyyy_mm_dd = air_date.date().isoformat()
@@ -456,9 +452,10 @@ def find_returning_shows(sonarr_url, api_key, excluded_tvdb_ids):
     
     return matched_shows
 
-def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale):
+def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale, utc_offset=0):
     """Find shows with status 'continuing' that had a season finale air within the specified days"""
-    cutoff_date = datetime.now(timezone.utc) - timedelta(days=recent_days_season_finale)
+    now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
+    cutoff_date = now_local - timedelta(days=recent_days_season_finale)
     matched_shows = []
     
     all_series = get_sonarr_series(sonarr_url, api_key)
@@ -506,10 +503,10 @@ def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale):
             if not has_file:
                 continue
                 
-            air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
+            air_date = convert_utc_to_local(air_date_str, utc_offset)
             
             # Check if it aired within the recent period
-            if air_date <= datetime.now(timezone.utc) and air_date >= cutoff_date:
+            if air_date <= now_local and air_date >= cutoff_date:
                 tvdb_id = series.get('tvdbId')
                 air_date_str_yyyy_mm_dd = air_date.date().isoformat()
                 
@@ -526,9 +523,10 @@ def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale):
     
     return matched_shows
 
-def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode):
+def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode, utc_offset=0):
     """Find shows with status 'ended' that had their final episode air within the specified days"""
-    cutoff_date = datetime.now(timezone.utc) - timedelta(days=recent_days_final_episode)
+    now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
+    cutoff_date = now_local - timedelta(days=recent_days_final_episode)
     matched_shows = []
     
     all_series = get_sonarr_series(sonarr_url, api_key)
@@ -550,8 +548,8 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode):
                 continue
                 
             if air_date_str:
-                air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
-                if air_date > datetime.now(timezone.utc):
+                air_date = convert_utc_to_local(air_date_str, utc_offset)
+                if air_date > now_local:
                     has_future_episodes = True
                     break
         
@@ -572,8 +570,8 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode):
                 continue
                 
             if air_date_str:
-                air_date = datetime.fromisoformat(air_date_str.replace('Z','')).replace(tzinfo=timezone.utc)
-                if air_date <= datetime.now(timezone.utc) and (latest_date is None or air_date > latest_date):
+                air_date = convert_utc_to_local(air_date_str, utc_offset)
+                if air_date <= now_local and (latest_date is None or air_date > latest_date):
                     latest_date = air_date
                     latest_episode = ep
         
@@ -895,7 +893,8 @@ def main():
         # Get recent days values
         recent_days_season_finale = config.get('recent_days_season_finale', 14)
         recent_days_final_episode = config.get('recent_days_final_episode', 14)
-        
+		
+        utc_offset = float(config.get('utc_offset', 0))
         skip_unmonitored = str(config.get("skip_unmonitored", "false")).lower() == "true"
 
         # Print chosen values
@@ -905,13 +904,14 @@ def main():
         print(f"recent_days_season_finale: {recent_days_season_finale}")
         print(f"recent_days_final_episode: {recent_days_final_episode}")
         print(f"skip_unmonitored: {skip_unmonitored}\n")
+        print(f"UTC offset: {utc_offset} hours\n")
 
         # Track all tvdbIds to exclude from other categories
         all_excluded_tvdb_ids = set()
         
         # ---- Recent Season Finales ----
         season_finale_shows = find_recent_season_finales(
-            sonarr_url, sonarr_api_key, recent_days_season_finale
+            sonarr_url, sonarr_api_key, recent_days_season_finale, utc_offset
         )
         
         # Add to excluded IDs
@@ -932,7 +932,7 @@ def main():
         
         # ---- Recent Final Episodes ----
         final_episode_shows = find_recent_final_episodes(
-            sonarr_url, sonarr_api_key, recent_days_final_episode
+            sonarr_url, sonarr_api_key, recent_days_final_episode, utc_offset
         )
         
         # Add to excluded IDs
@@ -956,7 +956,7 @@ def main():
 
         # ---- New Season Shows ----
         matched_shows, skipped_shows = find_new_season_shows(
-            sonarr_url, sonarr_api_key, future_days_new_season, skip_unmonitored
+            sonarr_url, sonarr_api_key, future_days_new_season, utc_offset, skip_unmonitored
         )
         
         # Filter out shows that are in the season finale or final episode categories
@@ -988,7 +988,7 @@ def main():
         
         # ---- Upcoming Non-Finale Episodes ----
         upcoming_eps, skipped_eps = find_upcoming_regular_episodes(
-            sonarr_url, sonarr_api_key, future_days_upcoming_episode, skip_unmonitored=skip_unmonitored
+            sonarr_url, sonarr_api_key, future_days_upcoming_episode, utc_offset, skip_unmonitored
         )
         
         # Filter out shows that are in the season finale or final episode categories
@@ -1012,7 +1012,7 @@ def main():
         
         # ---- Upcoming Finale Episodes ----
         finale_eps, skipped_finales = find_upcoming_finales(
-            sonarr_url, sonarr_api_key, future_days_upcoming_finale, skip_unmonitored=skip_unmonitored
+            sonarr_url, sonarr_api_key, future_days_upcoming_finale, utc_offset, skip_unmonitored
         )
         
         # Filter out shows that are in the season finale or final episode categories
