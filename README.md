@@ -19,6 +19,7 @@ Example overlays:
 - 🏁 **Aired Finale labelling**: Use a separate overlay for shows for which a Finale was added.
 -  ▼ **Filters out unmonitored**: Skips show if season/episode is unmonitored. (optional)
 -  🪄 **Customizable**: Change date format, collection name, overlay positioning, text, ..
+-  🌎 **Timezones**: Choose your timezone, regardless of where the script is ran from.
 - ℹ️ **Informs**: Lists matched and skipped(unmonitored) TV shows.
 - 📝 **Creates .yml**: Creates collection and overlay files which can be used with Kometa.
 
@@ -101,6 +102,11 @@ Rename `config.example.yml` to `config.yml` and edit the needed settings:
 - **sonarr_url:** Change if needed.
 - **sonarr_api_key:** Can be found in Sonarr under settings => General => Security.
 - **skip_unmonitored:** Default `true` will skip a show if the upcoming season/episode is unmonitored.
+- **utc_offset:** Set the [UTC timezone](https://en.wikipedia.org/wiki/List_of_UTC_offsets) offset. e.g.: LA: -8, New York: -5, Amsterdam: +1, Tokyo: +9, etc
+
+>[!NOTE]
+> Some people may run their server on a different timezone (e.g. on a seedbox), therefor the script doesn't convert the air dates to your machine's local timezone. Instead, you can enter the utc offset you desire.
+
 </br>
 
 For each category, you can change the relevant settings:
