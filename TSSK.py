@@ -5,7 +5,7 @@ from collections import defaultdict
 import sys
 import os
 
-VERSION = "1.4"
+VERSION = "1.5"
 
 # ANSI color codes
 GREEN = '\033[32m'
@@ -327,7 +327,9 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, utc_
         for season_num, season_eps in seasons.items():
             if season_eps:
                 max_ep = max(ep.get('episodeNumber', 0) for ep in season_eps)
-                season_finales[season_num] = max_ep
+                # Only consider it a finale if it's not episode 1 (to prevent new seasons with only one episode known from being identified as finales)
+                if max_ep > 1:
+                    season_finales[season_num] = max_ep
         
         future_episodes = []
         for ep in episodes:
@@ -355,8 +357,8 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, utc_
         season_num = next_future.get('seasonNumber')
         episode_num = next_future.get('episodeNumber')
         
-        # Only include season finales
-        is_episode_finale = season_num in season_finales and episode_num == season_finales[season_num]
+        # Only include season finales and ensure episode number is greater than 1
+        is_episode_finale = season_num in season_finales and episode_num == season_finales[season_num] and episode_num > 1
         if not is_episode_finale:
             continue
         
@@ -560,6 +562,7 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode, u
         latest_episode = None
         latest_date = None
         
+        # First, find the latest air date
         for ep in episodes:
             air_date_str = ep.get('airDateUtc')
             season_number = ep.get('seasonNumber', 0)
@@ -573,7 +576,31 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode, u
                 air_date = convert_utc_to_local(air_date_str, utc_offset)
                 if air_date <= now_local and (latest_date is None or air_date > latest_date):
                     latest_date = air_date
-                    latest_episode = ep
+        
+        # Then, find the episode with the highest season/episode number on that date
+        if latest_date:
+            latest_season = 0
+            latest_episode_num = 0
+            
+            for ep in episodes:
+                air_date_str = ep.get('airDateUtc')
+                season_number = ep.get('seasonNumber', 0)
+                episode_number = ep.get('episodeNumber', 0)
+                has_file = ep.get('hasFile', False)
+                
+                # Skip specials and episodes that haven't been downloaded
+                if season_number == 0 or not has_file:
+                    continue
+                    
+                if air_date_str:
+                    air_date = convert_utc_to_local(air_date_str, utc_offset)
+                    # Check if this episode aired on the latest date
+                    if air_date == latest_date:
+                        # If it has a higher season number or same season but higher episode number
+                        if (season_number > latest_season) or (season_number == latest_season and episode_number > latest_episode_num):
+                            latest_season = season_number
+                            latest_episode_num = episode_number
+                            latest_episode = ep
         
         # Check if the latest episode aired within the recent period
         if latest_episode and latest_date and latest_date >= cutoff_date:
