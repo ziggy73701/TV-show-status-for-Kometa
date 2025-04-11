@@ -5,7 +5,7 @@ from collections import defaultdict
 import sys
 import os
 
-VERSION = "1.5"
+VERSION = "1.6"
 
 # ANSI color codes
 GREEN = '\033[32m'
@@ -133,6 +133,7 @@ def get_sonarr_episodes(sonarr_url, api_key, series_id):
 
 def find_new_season_shows(sonarr_url, api_key, future_days_new_season, utc_offset=0, skip_unmonitored=False):
     cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_new_season)
+    now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
     matched_shows = []
     skipped_shows = []
     
@@ -154,7 +155,11 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, utc_offse
             
             air_date = convert_utc_to_local(air_date_str, utc_offset)
             
-            if air_date > datetime.now(timezone.utc) + timedelta(hours=utc_offset):
+            # Skip episodes that have already been downloaded - they should be treated as if they've aired
+            if ep.get('hasFile', False):
+                continue
+                
+            if air_date > now_local:
                 future_episodes.append((ep, air_date))
         
         future_episodes.sort(key=lambda x: x[1])
@@ -221,6 +226,7 @@ def find_new_season_shows(sonarr_url, api_key, future_days_new_season, utc_offse
 def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_episode, utc_offset=0, skip_unmonitored=False):
     """Find shows with upcoming non-premiere, non-finale episodes within the specified days"""
     cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_upcoming_episode)
+    now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
     matched_shows = []
     skipped_shows = []
     
@@ -255,7 +261,10 @@ def find_upcoming_regular_episodes(sonarr_url, api_key, future_days_upcoming_epi
             
             air_date = convert_utc_to_local(air_date_str, utc_offset)
             
-            now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
+            # Skip episodes that have already been downloaded - they should be treated as if they've aired
+            if ep.get('hasFile', False):
+                continue
+                
             if air_date > now_local and air_date <= cutoff_date:
                 future_episodes.append((ep, air_date))
         
@@ -327,7 +336,7 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, utc_
         for season_num, season_eps in seasons.items():
             if season_eps:
                 max_ep = max(ep.get('episodeNumber', 0) for ep in season_eps)
-                # Only consider it a finale if it's not episode 1 (to prevent new seasons with only one episode known from being identified as finales)
+                # Only consider it a finale if it's not episode 1
                 if max_ep > 1:
                     season_finales[season_num] = max_ep
         
@@ -345,6 +354,11 @@ def find_upcoming_finales(sonarr_url, api_key, future_days_upcoming_finale, utc_
             air_date = convert_utc_to_local(air_date_str, utc_offset)
             
             now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
+            
+            # Skip episodes that have already been downloaded - they'll be handled by recent_season_finales
+            if ep.get('hasFile', False):
+                continue
+                
             if air_date > now_local and air_date <= cutoff_date:
                 future_episodes.append((ep, air_date))
         
@@ -454,8 +468,8 @@ def find_returning_shows(sonarr_url, api_key, excluded_tvdb_ids):
     
     return matched_shows
 
-def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale, utc_offset=0):
-    """Find shows with status 'continuing' that had a season finale air within the specified days"""
+def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale, utc_offset=0, skip_unmonitored=False):
+    """Find shows with status 'continuing' that had a season finale air within the specified days or have a future finale that's already downloaded"""
     now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
     cutoff_date = now_local - timedelta(days=recent_days_season_finale)
     matched_shows = []
@@ -466,67 +480,95 @@ def find_recent_season_finales(sonarr_url, api_key, recent_days_season_finale, u
         # Only include continuing shows
         if series.get('status') != 'continuing':
             continue
+        
+        # Skip unmonitored shows if requested
+        if skip_unmonitored and not series.get('monitored', True):
+            continue
             
         episodes = get_sonarr_episodes(sonarr_url, api_key, series['id'])
         
-        # Group episodes by season
+        # Group episodes by season and find downloaded episodes
         seasons = defaultdict(list)
+        downloaded_episodes = defaultdict(list)
+        
         for ep in episodes:
-            if ep.get('seasonNumber') > 0:  # Skip specials
-                seasons[ep.get('seasonNumber')].append(ep)
+            season_number = ep.get('seasonNumber', 0)
+            if season_number > 0:  # Skip specials
+                seasons[season_number].append(ep)
+                if ep.get('hasFile', False):
+                    downloaded_episodes[season_number].append(ep)
         
         # For each season, find the max episode number to identify finales
         season_finales = {}
         for season_num, season_eps in seasons.items():
-            if season_eps:
+            # Only consider it a finale if there are multiple episodes in the season
+            if len(season_eps) > 1:
                 max_ep = max(ep.get('episodeNumber', 0) for ep in season_eps)
                 season_finales[season_num] = max_ep
         
         # Look for recently aired season finales
-        for ep in episodes:
-            air_date_str = ep.get('airDateUtc')
-            if not air_date_str:
+        for season_num, max_episode_num in season_finales.items():
+            # Skip if no episodes downloaded for this season
+            if season_num not in downloaded_episodes:
                 continue
                 
-            season_num = ep.get('seasonNumber')
-            episode_num = ep.get('episodeNumber')
+            # Find the finale episode
+            finale_episode = None
+            for ep in downloaded_episodes[season_num]:
+                if ep.get('episodeNumber') == max_episode_num:
+                    finale_episode = ep
+                    break
             
-            # Skip specials
-            if season_num == 0:
+            if not finale_episode:
                 continue
                 
-            # Check if this is a finale episode
-            is_finale = season_num in season_finales and episode_num == season_finales[season_num]
-            if not is_finale:
-                continue
+            # Skip if the season is unmonitored and skip_unmonitored is True
+            if skip_unmonitored:
+                season_monitored = True
+                for season_info in series.get("seasons", []):
+                    if season_info.get("seasonNumber") == season_num:
+                        season_monitored = season_info.get("monitored", True)
+                        break
                 
-            # Verify the episode has been downloaded
-            has_file = ep.get('hasFile', False)
-            if not has_file:
+                if not season_monitored:
+                    continue
+                
+                # Also check if the episode itself is monitored
+                if not finale_episode.get("monitored", True):
+                    continue
+            
+            air_date_str = finale_episode.get('airDateUtc')
+            if not air_date_str:
                 continue
                 
             air_date = convert_utc_to_local(air_date_str, utc_offset)
             
-            # Check if it aired within the recent period
-            if air_date <= now_local and air_date >= cutoff_date:
+            # Include if:
+            # 1. It aired within the recent period, OR
+            # 2. It has a future air date but has already been downloaded
+            if (air_date <= now_local and air_date >= cutoff_date) or (air_date > now_local and finale_episode.get('hasFile', False)):
                 tvdb_id = series.get('tvdbId')
-                air_date_str_yyyy_mm_dd = air_date.date().isoformat()
+                
+                # If it's a future episode that's already downloaded, use today's date instead
+                if air_date > now_local and finale_episode.get('hasFile', False):
+                    air_date_str_yyyy_mm_dd = now_local.date().isoformat()
+                else:
+                    air_date_str_yyyy_mm_dd = air_date.date().isoformat()
                 
                 show_dict = {
                     'title': series['title'],
                     'seasonNumber': season_num,
-                    'episodeNumber': episode_num,
+                    'episodeNumber': max_episode_num,
                     'airDate': air_date_str_yyyy_mm_dd,
                     'tvdbId': tvdb_id
                 }
                 
                 matched_shows.append(show_dict)
-                break  # Only include the most recent finale for a show
     
     return matched_shows
 
-def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode, utc_offset=0):
-    """Find shows with status 'ended' that had their final episode air within the specified days"""
+def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode, utc_offset=0, skip_unmonitored=False):
+    """Find shows with status 'ended' that had their final episode air within the specified days or have a future final episode that's already downloaded"""
     now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
     cutoff_date = now_local - timedelta(days=recent_days_final_episode)
     matched_shows = []
@@ -538,81 +580,103 @@ def find_recent_final_episodes(sonarr_url, api_key, recent_days_final_episode, u
         if series.get('status') != 'ended':
             continue
             
+        # Skip unmonitored shows if requested
+        if skip_unmonitored and not series.get('monitored', True):
+            continue
+            
         episodes = get_sonarr_episodes(sonarr_url, api_key, series['id'])
         
-        # Skip shows with future episodes (excluding specials)
-        has_future_episodes = False
+        # Group episodes by season and find downloaded episodes
+        seasons = defaultdict(list)
+        downloaded_episodes = defaultdict(list)
+        
+        for ep in episodes:
+            season_number = ep.get('seasonNumber', 0)
+            if season_number > 0:  # Skip specials
+                seasons[season_number].append(ep)
+                if ep.get('hasFile', False):
+                    downloaded_episodes[season_number].append(ep)
+        
+        # Skip if no episodes downloaded
+        if not any(downloaded_episodes.values()):
+            continue
+            
+        # Find the highest season with downloaded episodes
+        max_season = max(downloaded_episodes.keys()) if downloaded_episodes else 0
+        
+        # Skip if no valid seasons found
+        if max_season == 0:
+            continue
+            
+        # Find the highest episode number in the highest season
+        max_episode_num = max(ep.get('episodeNumber', 0) for ep in downloaded_episodes[max_season])
+        
+        # Find the final episode
+        final_episode = None
+        for ep in downloaded_episodes[max_season]:
+            if ep.get('episodeNumber') == max_episode_num:
+                final_episode = ep
+                break
+        
+        if not final_episode:
+            continue
+            
+        # Skip if the season is unmonitored and skip_unmonitored is True
+        if skip_unmonitored:
+            season_monitored = True
+            for season_info in series.get("seasons", []):
+                if season_info.get("seasonNumber") == max_season:
+                    season_monitored = season_info.get("monitored", True)
+                    break
+            
+            if not season_monitored:
+                continue
+            
+            # Also check if the episode itself is monitored
+            if not final_episode.get("monitored", True):
+                continue
+        
+        # Check if there are any future episodes that aren't downloaded
+        has_future_undownloaded_episodes = False
         for ep in episodes:
             air_date_str = ep.get('airDateUtc')
             season_number = ep.get('seasonNumber', 0)
+            has_file = ep.get('hasFile', False)
             
             if season_number == 0:  # Skip specials
                 continue
                 
             if air_date_str:
                 air_date = convert_utc_to_local(air_date_str, utc_offset)
-                if air_date > now_local:
-                    has_future_episodes = True
+                if air_date > now_local and not has_file:
+                    has_future_undownloaded_episodes = True
                     break
         
-        if has_future_episodes:
+        if has_future_undownloaded_episodes:
             continue
             
-        # Find the latest aired episode (excluding specials)
-        latest_episode = None
-        latest_date = None
-        
-        # First, find the latest air date
-        for ep in episodes:
-            air_date_str = ep.get('airDateUtc')
-            season_number = ep.get('seasonNumber', 0)
-            has_file = ep.get('hasFile', False)
+        air_date_str = final_episode.get('airDateUtc')
+        if not air_date_str:
+            continue
             
-            # Skip specials and episodes that haven't been downloaded
-            if season_number == 0 or not has_file:
-                continue
-                
-            if air_date_str:
-                air_date = convert_utc_to_local(air_date_str, utc_offset)
-                if air_date <= now_local and (latest_date is None or air_date > latest_date):
-                    latest_date = air_date
+        air_date = convert_utc_to_local(air_date_str, utc_offset)
         
-        # Then, find the episode with the highest season/episode number on that date
-        if latest_date:
-            latest_season = 0
-            latest_episode_num = 0
-            
-            for ep in episodes:
-                air_date_str = ep.get('airDateUtc')
-                season_number = ep.get('seasonNumber', 0)
-                episode_number = ep.get('episodeNumber', 0)
-                has_file = ep.get('hasFile', False)
-                
-                # Skip specials and episodes that haven't been downloaded
-                if season_number == 0 or not has_file:
-                    continue
-                    
-                if air_date_str:
-                    air_date = convert_utc_to_local(air_date_str, utc_offset)
-                    # Check if this episode aired on the latest date
-                    if air_date == latest_date:
-                        # If it has a higher season number or same season but higher episode number
-                        if (season_number > latest_season) or (season_number == latest_season and episode_number > latest_episode_num):
-                            latest_season = season_number
-                            latest_episode_num = episode_number
-                            latest_episode = ep
-        
-        # Check if the latest episode aired within the recent period
-        if latest_episode and latest_date and latest_date >= cutoff_date:
+        # Include if:
+        # 1. It aired within the recent period, OR
+        # 2. It has a future air date but has already been downloaded
+        if (air_date <= now_local and air_date >= cutoff_date) or (air_date > now_local and final_episode.get('hasFile', False)):
             tvdb_id = series.get('tvdbId')
-            season_num = latest_episode.get('seasonNumber')
-            episode_num = latest_episode.get('episodeNumber')
-            air_date_str_yyyy_mm_dd = latest_date.date().isoformat()
+            
+            # If it's a future episode that's already downloaded, use today's date instead
+            if air_date > now_local and final_episode.get('hasFile', False):
+                air_date_str_yyyy_mm_dd = now_local.date().isoformat()
+            else:
+                air_date_str_yyyy_mm_dd = air_date.date().isoformat()
             
             show_dict = {
                 'title': series['title'],
-                'seasonNumber': season_num,
-                'episodeNumber': episode_num,
+                'seasonNumber': max_season,
+                'episodeNumber': max_episode_num,
                 'airDate': air_date_str_yyyy_mm_dd,
                 'tvdbId': tvdb_id
             }
@@ -938,7 +1002,7 @@ def main():
         
         # ---- Recent Season Finales ----
         season_finale_shows = find_recent_season_finales(
-            sonarr_url, sonarr_api_key, recent_days_season_finale, utc_offset
+            sonarr_url, sonarr_api_key, recent_days_season_finale, utc_offset, skip_unmonitored
         )
         
         # Add to excluded IDs
@@ -1062,6 +1126,8 @@ def main():
         create_collection_yaml("TSSK_TV_UPCOMING_FINALE_COLLECTION.yml", finale_eps, config)
         
         # ---- Ended Shows ----
+        # The find_ended_shows function doesn't have a skip_unmonitored parameter
+        # as it's based on show status rather than monitoring status
         ended_shows = find_ended_shows(sonarr_url, sonarr_api_key)
         
         # Filter out shows that are in the season finale or final episode categories
