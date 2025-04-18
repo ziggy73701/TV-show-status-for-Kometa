@@ -5,6 +5,8 @@ from collections import defaultdict
 import sys
 import os
 
+# Constants
+IS_DOCKER = os.getenv("DOCKER", "false").lower() == "true"
 VERSION = "1.6"
 
 # ANSI color codes
@@ -786,7 +788,7 @@ def create_overlay_yaml(output_file, shows, config_sections):
     from datetime import datetime
 
     # Ensure the directory exists
-    output_dir = "config/kometa/tssk/"
+    output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
 
@@ -879,7 +881,7 @@ def create_collection_yaml(output_file, shows, config):
     from collections import OrderedDict
 
     # Ensure the directory exists
-    output_dir = "config/kometa/tssk/"
+    output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
 

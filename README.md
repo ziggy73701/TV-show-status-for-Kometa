@@ -88,6 +88,7 @@ services:
     container_name: tssk
     environment:
       - CRON=0 2 * * * # every day at 2am
+      - DOCKER=true # important for path reference
     volumes:
       - /your/local/config/tssk:/app/config
       - /your/local/kometa/config:/config/kometa
@@ -100,34 +101,37 @@ services:
 
 ### 1️⃣ Edit your Kometa config
 
-Open your **Kometa** config.yml (typically at `Kometa/config/config.yml`, NOT your TSSK config file).
+Open your **Kometa** config.yml (typically at `Kometa/config/config.yml`, NOT your TSSK config file).  
+Refer to the note above for where the files are saved depending on your setup.
 
-Depending on your setup, the generated files will be available in different locations:
+The `.yml` files created by TSSK that Kometa uses are stored in different folders depending on how you're running the script:
 
-- **Manual install**: they are written to the `/kometa/tssk/` folder inside your TSSK directory. You will need to either copy them to your Kometa config or mount them as a volume.
-- **Docker install (with the recommended volume mounts)**: they will be seen by Kometa at `/config/tssk/`.
+- **Manual install**: files are saved directly to `kometa/` inside your TSSK folder (e.g. `TSSK/kometa/`)
+- **Docker install**: files are saved to `/config/kometa/tssk/` inside the container — assuming you mount your Kometa config folder to `/config`
+
+Make sure your Kometa config uses the correct path to reference those files.
 
 In your Kometa config, include the following lines under your `TV Shows` library:
 
 ```yaml
 TV Shows:
   collection_files:
-    - file: /tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
-    - file: /tssk/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
-    - file: /tssk/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
-    - file: /tssk/TSSK_TV_SEASON_FINALE_COLLECTION.yml
-    - file: /tssk/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
-    - file: /tssk/TSSK_TV_ENDED_COLLECTION.yml
-    - file: /tssk/TSSK_TV_RETURNING_COLLECTION.yml
+    - file: tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
+    - file: tssk/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
+    - file: tssk/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
+    - file: tssk/TSSK_TV_SEASON_FINALE_COLLECTION.yml
+    - file: tssk/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
+    - file: tssk/TSSK_TV_ENDED_COLLECTION.yml
+    - file: tssk/TSSK_TV_RETURNING_COLLECTION.yml
 
   overlay_files:
-    - file: /tssk/TSSK_TV_NEW_SEASON_OVERLAYS.yml
-    - file: /tssk/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
-    - file: /tssk/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
-    - file: /tssk/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
-    - file: /tssk/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
-    - file: /tssk/TSSK_TV_ENDED_OVERLAYS.yml
-    - file: /tssk/TSSK_TV_RETURNING_OVERLAYS.yml
+    - file: tssk/TSSK_TV_NEW_SEASON_OVERLAYS.yml
+    - file: tssk/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
+    - file: tssk/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
+    - file: tssk/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
+    - file: tssk/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
+    - file: tssk/TSSK_TV_ENDED_OVERLAYS.yml
+    - file: tssk/TSSK_TV_RETURNING_OVERLAYS.yml
 ```
 
 > [!TIP]
