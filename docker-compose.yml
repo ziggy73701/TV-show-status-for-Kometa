@@ -6,10 +6,9 @@ services:
     container_name: tssk
     network_mode: host
     environment:
-      - CRON=0 2 * * *  # every day at 2am
+      - CRON=0 2 * * * # every day at 2am
       - TZ=Europe/London
     volumes:
-      - /volume2/docker/config/tssk:/app/config
-      - /volume2/docker/config/kometa/overlays/tssk:/config/overlays
-      - /volume2/docker/config/kometa/collections/tssk:/config/collections
+      - /your/local/config/tssk:/app/config
+      - /your/local/kometa/config:/config/kometa
     restart: unless-stopped
