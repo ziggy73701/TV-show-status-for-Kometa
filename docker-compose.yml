@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  tssk:
+    image: timothe/tssk:latest
+    container_name: tssk
+    network_mode: host
+    environment:
+      - CRON=0 2 * * *  # every day at 2am
+      - TZ=Europe/London
+    volumes:
+      - /volume2/docker/config/tssk:/app/config
+      - /volume2/docker/config/kometa/overlays/tssk:/config/overlays
+      - /volume2/docker/config/kometa/collections/tssk:/config/collections
+    restart: unless-stopped

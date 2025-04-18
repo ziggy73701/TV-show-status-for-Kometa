@@ -968,7 +968,7 @@ def main():
     print(f"{BLUE}{'*' * 40}\n{'*' * 15} TSSK {VERSION} {'*' * 15}\n{'*' * 40}{RESET}")
     check_for_updates()
 
-    config = load_config('config.yml')
+    config = load_config('config/config.yml')
     
     try:
         # Process and validate Sonarr URL
