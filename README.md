@@ -87,9 +87,9 @@ services:
     image: timothe/tssk:latest
     container_name: tssk
     environment:
-      - CRON=0 2 * * *  # Run daily at 2AM
+      - CRON=0 2 * * * # every day at 2am
     volumes:
-      - /your/local/tssk/config:/app/config
+      - /your/local/config/tssk:/app/config
       - /your/local/kometa/config:/config/kometa
     restart: unless-stopped
 ```

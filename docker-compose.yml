@@ -4,10 +4,8 @@ services:
   tssk:
     image: timothe/tssk:latest
     container_name: tssk
-    network_mode: host
     environment:
       - CRON=0 2 * * * # every day at 2am
-      - TZ=Europe/London
     volumes:
       - /your/local/config/tssk:/app/config
       - /your/local/kometa/config:/config/kometa
