@@ -115,23 +115,22 @@ In your Kometa config, include the following lines under your `TV Shows` library
 
 ```yaml
 TV Shows:
-  collection_files:
-    - file: tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
-    - file: tssk/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
-    - file: tssk/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
-    - file: tssk/TSSK_TV_SEASON_FINALE_COLLECTION.yml
-    - file: tssk/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
-    - file: tssk/TSSK_TV_ENDED_COLLECTION.yml
-    - file: tssk/TSSK_TV_RETURNING_COLLECTION.yml
-
   overlay_files:
-    - file: tssk/TSSK_TV_NEW_SEASON_OVERLAYS.yml
-    - file: tssk/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
-    - file: tssk/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
-    - file: tssk/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
-    - file: tssk/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
-    - file: tssk/TSSK_TV_ENDED_OVERLAYS.yml
-    - file: tssk/TSSK_TV_RETURNING_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_NEW_SEASON_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_ENDED_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_RETURNING_OVERLAYS.yml
+  collection_files:
+    - file: /config/tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_SEASON_FINALE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_ENDED_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_RETURNING_COLLECTION.yml
 ```
 
 > [!TIP]
