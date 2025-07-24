@@ -9,6 +9,9 @@ import os
 IS_DOCKER = os.getenv("DOCKER", "false").lower() == "true"
 VERSION = "1.7"
 
+# Cache for TMDB lookups
+TMDB_CACHE = {}
+
 # ANSI color codes
 GREEN = "\033[32m"
 ORANGE = "\033[33m"
@@ -120,6 +123,31 @@ def process_sonarr_url(base_url, api_key):
     )
 
 
+def fetch_tmdb_id(tvdb_id, api_key):
+    """Return the TMDB id for a given TVDB id using TMDB's find API."""
+    if not tvdb_id or not api_key:
+        return None
+
+    if tvdb_id in TMDB_CACHE:
+        return TMDB_CACHE[tvdb_id]
+
+    url = f"https://api.themoviedb.org/3/find/{tvdb_id}"
+    params = {"external_source": "tvdb_id", "api_key": api_key}
+
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        tmdb_results = data.get("tv_results") or []
+        tmdb_id = tmdb_results[0].get("id") if tmdb_results else None
+    except requests.exceptions.RequestException as e:
+        print(f"{ORANGE}TMDB lookup failed for TVDB {tvdb_id}: {str(e)}{RESET}")
+        tmdb_id = None
+
+    TMDB_CACHE[tvdb_id] = tmdb_id
+    return tmdb_id
+
+
 def get_sonarr_series(sonarr_url, api_key):
     try:
         url = f"{sonarr_url}/series"
@@ -145,7 +173,13 @@ def get_sonarr_episodes(sonarr_url, api_key, series_id):
 
 
 def find_new_season_shows(
-    sonarr_url, api_key, future_days_new_season, utc_offset=0, skip_unmonitored=False
+    sonarr_url,
+    api_key,
+    future_days_new_season,
+    utc_offset=0,
+    skip_unmonitored=False,
+    tmdb_api_key=None,
+    use_tmdb_filters=False,
 ):
     cutoff_date = datetime.now(timezone.utc) + timedelta(days=future_days_new_season)
     now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
@@ -201,6 +235,8 @@ def find_new_season_shows(
                 "airDate": air_date_str_yyyy_mm_dd,
                 "tvdbId": tvdb_id,
             }
+            if use_tmdb_filters:
+                show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
 
             if skip_unmonitored:
                 episode_monitored = next_future.get("monitored", True)
@@ -233,6 +269,8 @@ def find_new_season_shows(
                 "tvdbId": tvdb_id,
                 "reason": "New show (Season 1)",  # Add reason for skipping
             }
+            if use_tmdb_filters:
+                show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
 
             skipped_shows.append(show_dict)
 
@@ -245,6 +283,8 @@ def find_upcoming_regular_episodes(
     future_days_upcoming_episode,
     utc_offset=0,
     skip_unmonitored=False,
+    tmdb_api_key=None,
+    use_tmdb_filters=False,
 ):
     """Find shows with upcoming non-premiere, non-finale episodes within the specified days"""
     cutoff_date = datetime.now(timezone.utc) + timedelta(
@@ -322,6 +362,10 @@ def find_upcoming_regular_episodes(
             "airDate": air_date_str_yyyy_mm_dd,
             "tvdbId": tvdb_id,
         }
+        if use_tmdb_filters:
+            show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
+        if use_tmdb_filters:
+            show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
 
         if skip_unmonitored:
             episode_monitored = next_future.get("monitored", True)
@@ -347,6 +391,8 @@ def find_upcoming_finales(
     future_days_upcoming_finale,
     utc_offset=0,
     skip_unmonitored=False,
+    tmdb_api_key=None,
+    use_tmdb_filters=False,
 ):
     """Find shows with upcoming season finales within the specified days"""
     cutoff_date = datetime.now(timezone.utc) + timedelta(
@@ -444,7 +490,7 @@ def find_upcoming_finales(
     return matched_shows, skipped_shows
 
 
-def find_ended_shows(sonarr_url, api_key):
+def find_ended_shows(sonarr_url, api_key, tmdb_api_key=None, use_tmdb_filters=False):
     """Find shows that have ended and have no upcoming regular episodes (ignoring specials)"""
     matched_shows = []
 
@@ -478,13 +524,17 @@ def find_ended_shows(sonarr_url, api_key):
                 tvdb_id = series.get("tvdbId")
 
                 show_dict = {"title": series["title"], "tvdbId": tvdb_id}
+                if use_tmdb_filters:
+                    show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
 
                 matched_shows.append(show_dict)
 
     return matched_shows
 
 
-def find_returning_shows(sonarr_url, api_key, excluded_tvdb_ids):
+def find_returning_shows(
+    sonarr_url, api_key, excluded_tvdb_ids, tmdb_api_key=None, use_tmdb_filters=False
+):
     """Find shows with 'continuing' status that aren't in other categories"""
     matched_shows = []
 
@@ -500,6 +550,8 @@ def find_returning_shows(sonarr_url, api_key, excluded_tvdb_ids):
                 continue
 
             show_dict = {"title": series["title"], "tvdbId": tvdb_id}
+            if use_tmdb_filters:
+                show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
 
             matched_shows.append(show_dict)
 
@@ -507,7 +559,13 @@ def find_returning_shows(sonarr_url, api_key, excluded_tvdb_ids):
 
 
 def find_recent_season_finales(
-    sonarr_url, api_key, recent_days_season_finale, utc_offset=0, skip_unmonitored=False
+    sonarr_url,
+    api_key,
+    recent_days_season_finale,
+    utc_offset=0,
+    skip_unmonitored=False,
+    tmdb_api_key=None,
+    use_tmdb_filters=False,
 ):
     """Find shows with status 'continuing' that had a season finale air within the specified days or have a future finale that's already downloaded"""
     now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
@@ -604,6 +662,8 @@ def find_recent_season_finales(
                     "airDate": air_date_str_yyyy_mm_dd,
                     "tvdbId": tvdb_id,
                 }
+                if use_tmdb_filters:
+                    show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
 
                 matched_shows.append(show_dict)
 
@@ -611,7 +671,13 @@ def find_recent_season_finales(
 
 
 def find_recent_final_episodes(
-    sonarr_url, api_key, recent_days_final_episode, utc_offset=0, skip_unmonitored=False
+    sonarr_url,
+    api_key,
+    recent_days_final_episode,
+    utc_offset=0,
+    skip_unmonitored=False,
+    tmdb_api_key=None,
+    use_tmdb_filters=False,
 ):
     """Find shows with status 'ended' that had their final episode air within the specified days or have a future final episode that's already downloaded"""
     now_local = datetime.now(timezone.utc) + timedelta(hours=utc_offset)
@@ -729,6 +795,8 @@ def find_recent_final_episodes(
                 "airDate": air_date_str_yyyy_mm_dd,
                 "tvdbId": tvdb_id,
             }
+            if use_tmdb_filters:
+                show_dict["tmdbId"] = fetch_tmdb_id(tvdb_id, tmdb_api_key)
 
             matched_shows.append(show_dict)
 
@@ -782,7 +850,7 @@ def format_date(yyyy_mm_dd, date_format, capitalize=False):
         return yyyy_mm_dd  # Return original format as fallback
 
 
-def create_overlay_yaml(output_file, shows, config_sections):
+def create_overlay_yaml(output_file, shows, config_sections, id_type="tvdb"):
     import yaml
     from copy import deepcopy
     from datetime import datetime
@@ -797,20 +865,25 @@ def create_overlay_yaml(output_file, shows, config_sections):
             f.write("#No matching shows found")
         return
 
+    # Determine which ID field to use
+    id_key = "tmdbId" if id_type == "tmdb" else "tvdbId"
+    overlay_key = "tmdb_show" if id_type == "tmdb" else "tvdb_show"
+
     # Group shows by date if available
-    date_to_tvdb_ids = defaultdict(list)
-    all_tvdb_ids = set()
+    date_to_ids = defaultdict(list)
+    all_ids = set()
 
     # Check if this is a category that doesn't need dates
     no_date_needed = "SEASON_FINALE" in output_file or "FINAL_EPISODE" in output_file
 
     for s in shows:
-        if s.get("tvdbId"):
-            all_tvdb_ids.add(s["tvdbId"])
+        id_val = s.get(id_key)
+        if id_val:
+            all_ids.add(id_val)
 
         # Only add to date groups if the show has an air date and dates are needed
         if s.get("airDate") and not no_date_needed:
-            date_to_tvdb_ids[s["airDate"]].append(s.get("tvdbId"))
+            date_to_ids[s["airDate"]].append(id_val)
 
     overlays_dict = {}
 
@@ -820,52 +893,52 @@ def create_overlay_yaml(output_file, shows, config_sections):
     enable_backdrop = backdrop_config.pop("enable", True)
 
     # Only add backdrop overlay if enabled
-    if enable_backdrop and all_tvdb_ids:
+    if enable_backdrop and all_ids:
         backdrop_config["name"] = "backdrop"
-        all_tvdb_ids_str = ", ".join(str(i) for i in sorted(all_tvdb_ids) if i)
+        all_ids_str = ", ".join(str(i) for i in sorted(all_ids) if i)
 
         overlays_dict["backdrop"] = {
             "overlay": backdrop_config,
-            "tvdb_show": all_tvdb_ids_str,
+            overlay_key: all_ids_str,
         }
 
     # -- Text Blocks --
     text_config = deepcopy(config_sections.get("text", {}))
     enable_text = text_config.pop("enable", True)
 
-    if enable_text and all_tvdb_ids:
+    if enable_text and all_ids:
         date_format = text_config.pop("date_format", "yyyy-mm-dd")
         use_text = text_config.pop("use_text", "New Season")
         capitalize_dates = text_config.pop("capitalize_dates", True)
 
         # For categories that need dates and shows with air dates, create date-specific overlays
-        if date_to_tvdb_ids and not no_date_needed:
-            for date_str in sorted(date_to_tvdb_ids):
+        if date_to_ids and not no_date_needed:
+            for date_str in sorted(date_to_ids):
                 formatted_date = format_date(date_str, date_format, capitalize_dates)
                 sub_overlay_config = deepcopy(text_config)
                 sub_overlay_config["name"] = f"text({use_text} {formatted_date})"
 
-                tvdb_ids_for_date = sorted(
-                    tvdb_id for tvdb_id in date_to_tvdb_ids[date_str] if tvdb_id
+                ids_for_date = sorted(
+                    id_val for id_val in date_to_ids[date_str] if id_val
                 )
-                tvdb_ids_str = ", ".join(str(i) for i in tvdb_ids_for_date)
+                ids_str = ", ".join(str(i) for i in ids_for_date)
 
                 block_key = f"TSSK_{formatted_date}"
                 overlays_dict[block_key] = {
                     "overlay": sub_overlay_config,
-                    "tvdb_show": tvdb_ids_str,
+                    overlay_key: ids_str,
                 }
         # For shows without air dates or categories that don't need dates, create a single overlay
         else:
             sub_overlay_config = deepcopy(text_config)
             sub_overlay_config["name"] = f"text({use_text})"
 
-            tvdb_ids_str = ", ".join(str(i) for i in sorted(all_tvdb_ids) if i)
+            ids_str = ", ".join(str(i) for i in sorted(all_ids) if i)
 
             block_key = "TSSK_text"
             overlays_dict[block_key] = {
                 "overlay": sub_overlay_config,
-                "tvdb_show": tvdb_ids_str,
+                overlay_key: ids_str,
             }
 
     final_output = {"overlays": overlays_dict}
@@ -874,7 +947,7 @@ def create_overlay_yaml(output_file, shows, config_sections):
         yaml.dump(final_output, f, sort_keys=False)
 
 
-def create_collection_yaml(output_file, shows, config):
+def create_collection_yaml(output_file, shows, config, id_type="tvdb"):
     import yaml
     from yaml.representer import SafeRepresenter
     from copy import deepcopy
@@ -957,8 +1030,11 @@ def create_collection_yaml(output_file, shows, config):
             yaml.dump(data, f, Dumper=yaml.SafeDumper, sort_keys=False)
         return
 
-    tvdb_ids = [s["tvdbId"] for s in shows if s.get("tvdbId")]
-    if not tvdb_ids:
+    id_key = "tmdbId" if id_type == "tmdb" else "tvdbId"
+    plex_key = "tmdb_show" if id_type == "tmdb" else "tvdb_show"
+
+    ids = [s[id_key] for s in shows if s.get(id_key)]
+    if not ids:
         # Create the template for empty collections
         data = {
             "collections": {
@@ -975,7 +1051,7 @@ def create_collection_yaml(output_file, shows, config):
         return
 
     # Convert to comma-separated
-    tvdb_ids_str = ", ".join(str(i) for i in sorted(tvdb_ids))
+    ids_str = ", ".join(str(i) for i in sorted(ids))
 
     # Create the collection data structure as a regular dict
     collection_data = {}
@@ -993,7 +1069,7 @@ def create_collection_yaml(output_file, shows, config):
     collection_data["sync_mode"] = "sync"
 
     # Add tvdb_show as the last item
-    collection_data["tvdb_show"] = tvdb_ids_str
+    collection_data[plex_key] = ids_str
 
     # Create the final structure with ordered keys
     ordered_collection = OrderedDict()
@@ -1005,12 +1081,12 @@ def create_collection_yaml(output_file, shows, config):
 
     # Add all other keys except sync_mode and tvdb_show
     for key, value in collection_data.items():
-        if key not in ["summary", "sort_title", "sync_mode", "tvdb_show"]:
+        if key not in ["summary", "sort_title", "sync_mode", plex_key]:
             ordered_collection[key] = value
 
     # Add sync_mode and tvdb_show at the end
     ordered_collection["sync_mode"] = collection_data["sync_mode"]
-    ordered_collection["tvdb_show"] = collection_data["tvdb_show"]
+    ordered_collection[plex_key] = collection_data[plex_key]
 
     data = {"collections": {collection_name: ordered_collection}}
 
@@ -1030,6 +1106,8 @@ def main():
         # Process and validate Sonarr URL
         sonarr_url = process_sonarr_url(config["sonarr_url"], config["sonarr_api_key"])
         sonarr_api_key = config["sonarr_api_key"]
+        tmdb_api_key = config.get("tmdb_api_key")
+        use_tmdb_filters = str(config.get("use_tmdb_filters", "false")).lower() == "true"
 
         # Get category-specific future_days values, with fallback to main future_days
         future_days = config.get("future_days", 14)
@@ -1058,6 +1136,9 @@ def main():
         print(f"recent_days_final_episode: {recent_days_final_episode}")
         print(f"skip_unmonitored: {skip_unmonitored}\n")
         print(f"UTC offset: {utc_offset} hours\n")
+        print(f"use_tmdb_filters: {use_tmdb_filters}\n")
+
+        id_type = "tmdb" if use_tmdb_filters else "tvdb"
 
         # Track all tvdbIds to exclude from other categories
         all_excluded_tvdb_ids = set()
@@ -1069,6 +1150,8 @@ def main():
             recent_days_season_finale,
             utc_offset,
             skip_unmonitored,
+            tmdb_api_key,
+            use_tmdb_filters,
         )
 
         # Add to excluded IDs
@@ -1092,15 +1175,25 @@ def main():
                 "backdrop": config.get("backdrop_season_finale", {}),
                 "text": config.get("text_season_finale", {}),
             },
+            id_type,
         )
 
         create_collection_yaml(
-            "TSSK_TV_SEASON_FINALE_COLLECTION.yml", season_finale_shows, config
+            "TSSK_TV_SEASON_FINALE_COLLECTION.yml",
+            season_finale_shows,
+            config,
+            id_type,
         )
 
         # ---- Recent Final Episodes ----
         final_episode_shows = find_recent_final_episodes(
-            sonarr_url, sonarr_api_key, recent_days_final_episode, utc_offset
+            sonarr_url,
+            sonarr_api_key,
+            recent_days_final_episode,
+            utc_offset,
+            skip_unmonitored,
+            tmdb_api_key,
+            use_tmdb_filters,
         )
 
         # Add to excluded IDs
@@ -1124,10 +1217,14 @@ def main():
                 "backdrop": config.get("backdrop_final_episode", {}),
                 "text": config.get("text_final_episode", {}),
             },
+            id_type,
         )
 
         create_collection_yaml(
-            "TSSK_TV_FINAL_EPISODE_COLLECTION.yml", final_episode_shows, config
+            "TSSK_TV_FINAL_EPISODE_COLLECTION.yml",
+            final_episode_shows,
+            config,
+            id_type,
         )
 
         # Track all tvdbIds to exclude from the "returning" category
@@ -1140,6 +1237,8 @@ def main():
             future_days_new_season,
             utc_offset,
             skip_unmonitored,
+            tmdb_api_key,
+            use_tmdb_filters,
         )
 
         # Filter out shows that are in the season finale or final episode categories
@@ -1184,10 +1283,14 @@ def main():
                 ),
                 "text": config.get("text_new_season", config.get("text", {})),
             },
+            id_type,
         )
 
         create_collection_yaml(
-            "TSSK_TV_NEW_SEASON_COLLECTION.yml", matched_shows, config
+            "TSSK_TV_NEW_SEASON_COLLECTION.yml",
+            matched_shows,
+            config,
+            id_type,
         )
 
         # ---- Upcoming Non-Finale Episodes ----
@@ -1197,6 +1300,8 @@ def main():
             future_days_upcoming_episode,
             utc_offset,
             skip_unmonitored,
+            tmdb_api_key,
+            use_tmdb_filters,
         )
 
         # Filter out shows that are in the season finale or final episode categories
@@ -1227,10 +1332,14 @@ def main():
                 "backdrop": config.get("backdrop_upcoming_episode", {}),
                 "text": config.get("text_upcoming_episode", {}),
             },
+            id_type,
         )
 
         create_collection_yaml(
-            "TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml", upcoming_eps, config
+            "TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml",
+            upcoming_eps,
+            config,
+            id_type,
         )
 
         # ---- Upcoming Finale Episodes ----
@@ -1240,6 +1349,8 @@ def main():
             future_days_upcoming_finale,
             utc_offset,
             skip_unmonitored,
+            tmdb_api_key,
+            use_tmdb_filters,
         )
 
         # Filter out shows that are in the season finale or final episode categories
@@ -1270,16 +1381,25 @@ def main():
                 "backdrop": config.get("backdrop_upcoming_finale", {}),
                 "text": config.get("text_upcoming_finale", {}),
             },
+            id_type,
         )
 
         create_collection_yaml(
-            "TSSK_TV_UPCOMING_FINALE_COLLECTION.yml", finale_eps, config
+            "TSSK_TV_UPCOMING_FINALE_COLLECTION.yml",
+            finale_eps,
+            config,
+            id_type,
         )
 
         # ---- Ended Shows ----
         # The find_ended_shows function doesn't have a skip_unmonitored parameter
         # as it's based on show status rather than monitoring status
-        ended_shows = find_ended_shows(sonarr_url, sonarr_api_key)
+        ended_shows = find_ended_shows(
+            sonarr_url,
+            sonarr_api_key,
+            tmdb_api_key,
+            use_tmdb_filters,
+        )
 
         # Filter out shows that are in the season finale or final episode categories
         ended_shows = [
@@ -1305,13 +1425,23 @@ def main():
                 "backdrop": config.get("backdrop_ended", {}),
                 "text": config.get("text_ended", {}),
             },
+            id_type,
         )
 
-        create_collection_yaml("TSSK_TV_ENDED_COLLECTION.yml", ended_shows, config)
+        create_collection_yaml(
+            "TSSK_TV_ENDED_COLLECTION.yml",
+            ended_shows,
+            config,
+            id_type,
+        )
 
         # ---- Returning Shows ----
         returning_shows = find_returning_shows(
-            sonarr_url, sonarr_api_key, all_included_tvdb_ids
+            sonarr_url,
+            sonarr_api_key,
+            all_included_tvdb_ids,
+            tmdb_api_key,
+            use_tmdb_filters,
         )
 
         # Filter out shows that are in the season finale or final episode categories
@@ -1333,10 +1463,14 @@ def main():
                 "backdrop": config.get("backdrop_returning", {}),
                 "text": config.get("text_returning", {}),
             },
+            id_type,
         )
 
         create_collection_yaml(
-            "TSSK_TV_RETURNING_COLLECTION.yml", returning_shows, config
+            "TSSK_TV_RETURNING_COLLECTION.yml",
+            returning_shows,
+            config,
+            id_type,
         )
 
         print(f"\nAll YAML files created successfully")

@@ -144,8 +144,12 @@ Rename `config.example.yml` to `config.yml` and edit the needed settings:
 
 - **sonarr_url:** Change if needed.
 - **sonarr_api_key:** Can be found in Sonarr under settings => General => Security.
+- **tmdb_api_key:** Get your API key from [TMDb](https://www.themoviedb.org/settings/api).
+- **use_tmdb_filters:** Set to `true` to create overlays and collections using TMDB IDs.
 - **skip_unmonitored:** Default `true` will skip a show if the upcoming season/episode is unmonitored.
 - **utc_offset:** Set the [UTC timezone](https://en.wikipedia.org/wiki/List_of_UTC_offsets) offset. e.g.: LA: -8, New York: -5, Amsterdam: +1, Tokyo: +9, etc
+
+If you want to use TMDB based filters, sign up for a free TMDB account and create an API key. Add this key to `tmdb_api_key` and set `use_tmdb_filters` to `true` in your config.
 
 >[!NOTE]
 > Some people may run their server on a different timezone (e.g. on a seedbox), therefor the script doesn't convert the air dates to your machine's local timezone. Instead, you can enter the utc offset you desire.
