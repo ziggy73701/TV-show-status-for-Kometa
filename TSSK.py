@@ -7,7 +7,7 @@ import os
 
 # Constants
 IS_DOCKER = os.getenv("DOCKER", "false").lower() == "true"
-VERSION = "1.7"
+VERSION = "1.8"
 
 # ANSI color codes
 GREEN = "\033[32m"
@@ -118,6 +118,37 @@ def process_sonarr_url(base_url, api_key):
         + "\n".join([f"- {base_url}{path}" for path in api_paths])
         + f"\nPlease verify your URL and API key and ensure Sonarr is running.{RESET}"
     )
+
+
+def get_tmdb_status(tvdb_id, tmdb_api_key):
+    """Retrieve the status of a show from TMDB using its TVDB id"""
+    if not tmdb_api_key or not tvdb_id:
+        return None
+
+    try:
+        # First call to find the TMDB id from the TVDB id
+        find_url = (
+            f"https://api.themoviedb.org/3/find/{tvdb_id}?api_key="
+            f"{tmdb_api_key}&external_source=tvdb_id"
+        )
+        resp = requests.get(find_url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        tv_results = data.get("tv_results") or []
+        if not tv_results:
+            return None
+        tmdb_id = tv_results[0].get("id")
+        if not tmdb_id:
+            return None
+
+        details_url = f"https://api.themoviedb.org/3/tv/{tmdb_id}?api_key={tmdb_api_key}"
+        resp = requests.get(details_url, timeout=10)
+        resp.raise_for_status()
+        info = resp.json()
+        return info.get("status")
+    except Exception as e:
+        print(f"{ORANGE}Failed to fetch TMDB status for {tvdb_id}: {e}{RESET}")
+        return None
 
 
 def get_sonarr_series(sonarr_url, api_key):
@@ -444,24 +475,23 @@ def find_upcoming_finales(
     return matched_shows, skipped_shows
 
 
-def find_ended_shows(sonarr_url, api_key):
-    """Find shows that have ended and have no upcoming regular episodes (ignoring specials)"""
-    matched_shows = []
+def find_ended_shows(sonarr_url, api_key, tmdb_api_key=None):
+    """Find shows that have ended and have no upcoming regular episodes (ignoring specials).
+    Returns a tuple of (ended_shows, cancelled_shows)."""
+    ended_shows = []
+    cancelled_shows = []
 
     all_series = get_sonarr_series(sonarr_url, api_key)
 
     for series in all_series:
-        # Check if the show has ended
         if series.get("status") == "ended":
             episodes = get_sonarr_episodes(sonarr_url, api_key, series["id"])
 
-            # Check if there are any future regular episodes (ignoring specials)
             has_future_regular_episodes = False
             for ep in episodes:
                 air_date_str = ep.get("airDateUtc")
                 season_number = ep.get("seasonNumber", 0)
 
-                # Skip specials (season 0)
                 if season_number == 0:
                     continue
 
@@ -473,15 +503,17 @@ def find_ended_shows(sonarr_url, api_key):
                         has_future_regular_episodes = True
                         break
 
-            # Include only if there are no future regular episodes
             if not has_future_regular_episodes:
                 tvdb_id = series.get("tvdbId")
-
                 show_dict = {"title": series["title"], "tvdbId": tvdb_id}
 
-                matched_shows.append(show_dict)
+                tmdb_status = get_tmdb_status(tvdb_id, tmdb_api_key)
+                if tmdb_status and "cancel" in tmdb_status.lower():
+                    cancelled_shows.append(show_dict)
+                else:
+                    ended_shows.append(show_dict)
 
-    return matched_shows
+    return ended_shows, cancelled_shows
 
 
 def find_returning_shows(sonarr_url, api_key, excluded_tvdb_ids):
@@ -1049,6 +1081,7 @@ def main():
         skip_unmonitored = (
             str(config.get("skip_unmonitored", "false")).lower() == "true"
         )
+        tmdb_api_key = config.get("tmdb_api_key")
 
         # Print chosen values
         print(f"future_days_new_season: {future_days_new_season}")
@@ -1279,7 +1312,9 @@ def main():
         # ---- Ended Shows ----
         # The find_ended_shows function doesn't have a skip_unmonitored parameter
         # as it's based on show status rather than monitoring status
-        ended_shows = find_ended_shows(sonarr_url, sonarr_api_key)
+        ended_shows, cancelled_shows = find_ended_shows(
+            sonarr_url, sonarr_api_key, tmdb_api_key
+        )
 
         # Filter out shows that are in the season finale or final episode categories
         ended_shows = [
@@ -1288,8 +1323,18 @@ def main():
             if show.get("tvdbId") not in all_excluded_tvdb_ids
         ]
 
+        cancelled_shows = [
+            show
+            for show in cancelled_shows
+            if show.get("tvdbId") not in all_excluded_tvdb_ids
+        ]
+
         # Add to excluded IDs for returning category
         for show in ended_shows:
+            if show.get("tvdbId"):
+                all_included_tvdb_ids.add(show["tvdbId"])
+
+        for show in cancelled_shows:
             if show.get("tvdbId"):
                 all_included_tvdb_ids.add(show["tvdbId"])
 
@@ -1308,6 +1353,20 @@ def main():
         )
 
         create_collection_yaml("TSSK_TV_ENDED_COLLECTION.yml", ended_shows, config)
+
+        # ---- Cancelled Shows ----
+        create_overlay_yaml(
+            "TSSK_TV_CANCELLED_OVERLAYS.yml",
+            cancelled_shows,
+            {
+                "backdrop": config.get("backdrop_cancelled", {}),
+                "text": config.get("text_cancelled", {}),
+            },
+        )
+
+        create_collection_yaml(
+            "TSSK_TV_CANCELLED_COLLECTION.yml", cancelled_shows, config
+        )
 
         # ---- Returning Shows ----
         returning_shows = find_returning_shows(
