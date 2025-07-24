@@ -9,6 +9,7 @@ Categories:
 *  Shows with upcoming season finales within x days
 *  Returning Shows (new episodes or seasons are coming, but not within the timeframes chosen above)
 *  Ended Shows (no new episodes or seasons are expected)
+*  Cancelled Shows (series officially cancelled via TMDB API)
 
 Example overlays:
 ![Image](https://github.com/user-attachments/assets/91b08c66-58ed-417d-a87d-faf24be20896)
@@ -122,6 +123,7 @@ TV Shows:
     - file: /config/tssk/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
     - file: /config/tssk/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
     - file: /config/tssk/TSSK_TV_ENDED_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_CANCELLED_OVERLAYS.yml
     - file: /config/tssk/TSSK_TV_RETURNING_OVERLAYS.yml
   collection_files:
     - file: /config/tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
@@ -130,6 +132,7 @@ TV Shows:
     - file: /config/tssk/TSSK_TV_SEASON_FINALE_COLLECTION.yml
     - file: /config/tssk/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
     - file: /config/tssk/TSSK_TV_ENDED_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_CANCELLED_COLLECTION.yml
     - file: /config/tssk/TSSK_TV_RETURNING_COLLECTION.yml
 ```
 
@@ -144,6 +147,7 @@ Rename `config.example.yml` to `config.yml` and edit the needed settings:
 
 - **sonarr_url:** Change if needed.
 - **sonarr_api_key:** Can be found in Sonarr under settings => General => Security.
+- **tmdb_api_key:** Obtain from your [TMDB](https://www.themoviedb.org/) account.
 - **skip_unmonitored:** Default `true` will skip a show if the upcoming season/episode is unmonitored.
 - **utc_offset:** Set the [UTC timezone](https://en.wikipedia.org/wiki/List_of_UTC_offsets) offset. e.g.: LA: -8, New York: -5, Amsterdam: +1, Tokyo: +9, etc
 

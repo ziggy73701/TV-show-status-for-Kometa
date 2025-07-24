@@ -1,5 +1,6 @@
 sonarr_url: 'http://localhost:8989'
 sonarr_api_key: 'YOUR_SONARR_API_KEY'
+tmdb_api_key: 'YOUR_TMDB_API_KEY'
 
 skip_unmonitored: true
 utc_offset: +0
@@ -131,6 +132,35 @@ text_ended:
   vertical_offset: 50
   font_size: 70
   font_color: "#00ff3d"
+
+################################################################################
+##########                        CANCELLED:                        ##########
+################################################################################
+
+collection_cancelled:
+  collection_name: "Cancelled Shows"
+  smart_label: title.desc
+  sort_title: "+1_2Cancelled Shows"
+  ignore_blank_results: true
+
+backdrop_cancelled:
+  enable: false
+  back_color: "#000000"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_cancelled:
+  use_text: "C A N C E L L E D"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 50
+  font_size: 70
+  font_color: "#ff0000"
 
 ################################################################################
 ##########                         RETURNING:                         ##########
