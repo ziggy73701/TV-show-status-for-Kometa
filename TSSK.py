@@ -7,7 +7,7 @@ import os
 
 # Constants
 IS_DOCKER = os.getenv("DOCKER", "false").lower() == "true"
-VERSION = "1.6"
+VERSION = "1.7"
 
 # ANSI color codes
 GREEN = "\033[32m"
@@ -518,7 +518,7 @@ def find_recent_season_finales(
 
     for series in all_series:
         # Only include continuing shows
-        if series.get("status") != "continuing":
+        if series.get('status') not in ['continuing', 'upcoming']:
             continue
 
         # Skip unmonitored shows if requested
