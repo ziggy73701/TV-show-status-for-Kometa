@@ -1,5 +1,7 @@
 sonarr_url: 'http://localhost:8989'
 sonarr_api_key: 'YOUR_SONARR_API_KEY'
+tmdb_api_key: 'YOUR_TMDB_API_KEY'
+use_tmdb_filters: false
 
 skip_unmonitored: true
 utc_offset: +0
