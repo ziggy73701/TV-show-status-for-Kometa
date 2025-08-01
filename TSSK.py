@@ -945,6 +945,9 @@ def create_collection_yaml(output_file, shows, config):
     elif "ENDED" in output_file:
         config_key = "collection_ended"
         summary = "Shows that have completed their run"
+    elif "CANCELLED" in output_file:
+        config_key = "collection_cancelled"
+        summary = "Shows that where cancelled with no series finale"
     elif "RETURNING" in output_file:
         config_key = "collection_returning"
         summary = (
