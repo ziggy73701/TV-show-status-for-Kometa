@@ -4,6 +4,13 @@ from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 import sys
 import os
+from movies_history import (
+    process_radarr_url,
+    get_movie_history,
+    create_movie_overlay_yaml,
+    create_movie_collection_yaml,
+)
+
 
 # Constants
 IS_DOCKER = os.getenv("DOCKER", "false").lower() == "true"
@@ -1082,6 +1089,12 @@ def main():
             str(config.get("skip_unmonitored", "false")).lower() == "true"
         )
         tmdb_api_key = config.get("tmdb_api_key")
+        radarr_url = config.get("radarr_url")
+        radarr_api_key = config.get("radarr_api_key")
+        if radarr_url and radarr_api_key:
+            radarr_url = process_radarr_url(radarr_url, radarr_api_key)
+        else:
+            radarr_url = None
 
         # Print chosen values
         print(f"future_days_new_season: {future_days_new_season}")
@@ -1397,6 +1410,21 @@ def main():
         create_collection_yaml(
             "TSSK_TV_RETURNING_COLLECTION.yml", returning_shows, config
         )
+
+        # ---- Movie History ----
+        if tmdb_api_key and radarr_url and radarr_api_key:
+            movie_history = get_movie_history(tmdb_api_key, radarr_url, radarr_api_key)
+            create_movie_overlay_yaml(
+                "TSSK_MOVIE_HISTORY_OVERLAYS.yml",
+                movie_history,
+                {"backdrop": config.get("backdrop_movie_history", {}),
+                 "text": config.get("text_movie_history", {})},
+            )
+            create_movie_collection_yaml(
+                "TSSK_MOVIE_HISTORY_COLLECTION.yml",
+                movie_history,
+                config,
+            )
 
         print(f"\nAll YAML files created successfully")
 
