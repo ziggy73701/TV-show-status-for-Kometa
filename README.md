@@ -197,6 +197,25 @@ For each category, you can change the relevant settings:
 >
 >Dividers can be `/`, `-` or a space
 
+### Movie history overlay
+To display an overlay on movies based on your watch history, add `backdrop_movie_history` and `text_movie_history` blocks to your configuration.
+Both blocks accept an `enable` flag; when set to `false` the script skips generating that portion of the overlay.
+The text block also supports options like `use_text`, `font_size`, `font_color` and positioning settings. Missing values fall back to sensible defaults.
+
+```yaml
+backdrop_movie_history:
+  enable: true
+  back_color: "#000000"
+  # other backdrop settings...
+
+text_movie_history:
+  enable: true
+  use_text: "WATCHED"
+  font_size: 70
+  font_color: "#FFFFFF"
+  # other text settings...
+```
+
 ---
 ## 🚀 Usage - Running the Script
 
