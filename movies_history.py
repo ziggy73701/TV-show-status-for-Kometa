@@ -75,23 +75,36 @@ def create_movie_overlay_yaml(output_file, movies, config_sections=None):
             f.write("#No matching movies found")
         return
     tmdb_ids = ", ".join(str(m["tmdbId"]) for m in movies if m.get("tmdbId"))
+    overlays = {}
+
+    # Backdrop block
     backdrop_config = deepcopy(config_sections.get("backdrop", {}))
-    backdrop_config.setdefault("name", "backdrop")
-    data = {
-        "overlays": {
-            "backdrop": {
-                "overlay": backdrop_config,
-                "tmdb_movie": tmdb_ids,
-            }
+    enable_backdrop = backdrop_config.pop("enable", True)
+    if enable_backdrop:
+        backdrop_config.setdefault("name", "backdrop")
+        overlays["backdrop"] = {
+            "overlay": backdrop_config,
+            "tmdb_movie": tmdb_ids,
         }
-    }
+
+    # Text block
     text_config = deepcopy(config_sections.get("text", {}))
-    if text_config:
-        text_config.setdefault("name", "text")
-        data["overlays"]["text"] = {
+    enable_text = text_config.pop("enable", True)
+    if enable_text:
+        use_text = text_config.pop("use_text", "TRENDING")
+        text_config.setdefault("horizontal_align", "center")
+        text_config.setdefault("horizontal_offset", 0)
+        text_config.setdefault("vertical_align", "bottom")
+        text_config.setdefault("vertical_offset", 35)
+        text_config.setdefault("font_size", 70)
+        text_config.setdefault("font_color", "#FFFFFF")
+        text_config["name"] = f"text({use_text})"
+        overlays["text"] = {
             "overlay": text_config,
             "tmdb_movie": tmdb_ids,
         }
+
+    data = {"overlays": overlays}
     with open(output_file, "w", encoding="utf-8") as f:
         yaml.dump(data, f, sort_keys=False)
 
