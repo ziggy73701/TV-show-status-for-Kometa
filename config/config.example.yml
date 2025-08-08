@@ -1,6 +1,8 @@
 sonarr_url: 'http://localhost:8989'
 sonarr_api_key: 'YOUR_SONARR_API_KEY'
 tmdb_api_key: 'YOUR_TMDB_API_KEY'
+radarr_url: 'http://localhost:7878'
+radarr_api_key: 'YOUR_RADARR_API_KEY'
 
 skip_unmonitored: true
 utc_offset: +0
@@ -252,26 +254,3 @@ text_final_episode:
   vertical_offset: 35
   font_size: 70
   font_color: "#000000"
-################################################################################
-##########                      MOVIE HISTORY:                        ##########
-################################################################################
-
-backdrop_movie_history:
-  enable: true
-  back_color: "#000000"
-  back_height: 90
-  back_width: 950
-  horizontal_align: center
-  horizontal_offset: 0
-  vertical_align: bottom
-  vertical_offset: 20
-
-text_movie_history:
-  enable: true
-  use_text: "WATCHED"
-  horizontal_align: center
-  horizontal_offset: 0
-  vertical_align: bottom
-  vertical_offset: 35
-  font_size: 70
-  font_color: "#FFFFFF"
