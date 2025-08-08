@@ -1,6 +1,8 @@
 sonarr_url: 'http://localhost:8989'
 sonarr_api_key: 'YOUR_SONARR_API_KEY'
 tmdb_api_key: 'YOUR_TMDB_API_KEY'
+radarr_url: 'http://localhost:7878'
+radarr_api_key: 'YOUR_RADARR_API_KEY'
 
 skip_unmonitored: true
 utc_offset: +0
