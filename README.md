@@ -182,23 +182,29 @@ For each category, you can change the relevant settings:
   - **use_text:** Text to be used on the overlays before the date. e.h.: "NEW SEASON"
   - Change text color and positioning. You can add any relevant variables here. [More info here](https://kometa.wiki/en/latest/files/overlays/?h=overlay#text-overlay)
   
-### Movie overlay configuration
-The movie history overlay can also be customized with two blocks:
+### This Month in History configuration
+The This Month in History collection and overlay can be customized with three blocks:
 
 ```yaml
-backdrop_movie_history:
+collection_this_month_in_history:
+  collection_name: "This Month in History"
+  smart_label: title.desc
+  sort_title: "+1_2This Month in History"
+  ignore_blank_results: true
+
+backdrop_this_month_in_history:
   enable: true   # disable to skip the colored backdrop
   back_color: "#000000"
   back_height: 90
 
-text_movie_history:
+text_this_month_in_history:
   enable: true   # disable to remove text overlay
-  use_text: "TRENDING"
+  use_text: "THIS MONTH"
   font_size: 70
   font_color: "#FFFFFF"
 ```
 
-Set `enable: false` on either block to omit that part of the overlay.
+Set `enable: false` on the backdrop or text block to omit that part of the overlay.
 
 >[!NOTE]
 > These are date formats you can use:<br/>

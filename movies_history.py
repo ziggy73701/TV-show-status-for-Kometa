@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 import requests
 from copy import deepcopy
 import yaml
@@ -39,28 +40,28 @@ def get_radarr_movies(radarr_url, api_key):
     return response.json()
 
 
-def _filter_tmdb_movies(tmdb_movies, radarr_movies):
-    radarr_tmdb_ids = {m.get("tmdbId") for m in radarr_movies if m.get("tmdbId")}
-    radarr_imdb_ids = {m.get("imdbId") for m in radarr_movies if m.get("imdbId")}
-    filtered = []
-    for movie in tmdb_movies:
-        tmdb_id = movie.get("id") or movie.get("tmdbId")
-        imdb_id = movie.get("imdb_id") or movie.get("imdbId")
-        if tmdb_id in radarr_tmdb_ids or (imdb_id and imdb_id in radarr_imdb_ids):
-            filtered.append(movie)
-    return filtered
-
-
-def get_movie_history(tmdb_api_key, radarr_url=None, radarr_api_key=None):
-    """Fetch trending movies from TMDb and filter against Radarr library."""
-    url = f"https://api.themoviedb.org/3/trending/movie/week?api_key={tmdb_api_key}"
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    movies = response.json().get("results", [])
-    if radarr_url and radarr_api_key:
-        radarr_movies = get_radarr_movies(radarr_url, radarr_api_key)
-        movies = _filter_tmdb_movies(movies, radarr_movies)
-    return [{"title": m.get("title"), "tmdbId": m.get("id")} for m in movies]
+def get_this_month_in_history(radarr_url, radarr_api_key):
+    """Return movies from Radarr released in the current month of previous years."""
+    radarr_movies = get_radarr_movies(radarr_url, radarr_api_key)
+    now = datetime.now()
+    current_month = now.month
+    movies = []
+    for movie in radarr_movies:
+        date_str = (
+            movie.get("inCinemas")
+            or movie.get("physicalRelease")
+            or movie.get("digitalRelease")
+            or movie.get("releaseDate")
+        )
+        if not date_str:
+            continue
+        try:
+            date = datetime.fromisoformat(date_str[:10])
+        except ValueError:
+            continue
+        if date.month == current_month and date.year < now.year:
+            movies.append({"title": movie.get("title"), "tmdbId": movie.get("tmdbId")})
+    return movies
 
 
 def create_movie_overlay_yaml(output_file, movies, config_sections=None):
@@ -91,7 +92,7 @@ def create_movie_overlay_yaml(output_file, movies, config_sections=None):
     text_config = deepcopy(config_sections.get("text", {}))
     enable_text = text_config.pop("enable", True)
     if enable_text:
-        use_text = text_config.pop("use_text", "TRENDING")
+        use_text = text_config.pop("use_text", "THIS MONTH")
         text_config.setdefault("horizontal_align", "center")
         text_config.setdefault("horizontal_offset", 0)
         text_config.setdefault("vertical_align", "bottom")
@@ -111,26 +112,52 @@ def create_movie_overlay_yaml(output_file, movies, config_sections=None):
 
 def create_movie_collection_yaml(output_file, movies, config=None):
     """Create collection YAML for movies using tmdbId identifiers."""
+    from collections import OrderedDict
+
     if config is None:
         config = {}
     output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
     tmdb_ids = [m["tmdbId"] for m in movies if m.get("tmdbId")]
+    collection_config = deepcopy(config.get("collection_this_month_in_history", {}))
+    collection_name = collection_config.pop("collection_name", "This Month in History")
+    month_name = datetime.now().strftime("%B")
+    summary = f"Movies released in {month_name} in previous years"
+
+    class QuotedString(str):
+        pass
+
+    def quoted_str_presenter(dumper, data):
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
+
+    yaml.add_representer(QuotedString, quoted_str_presenter, Dumper=yaml.SafeDumper)
+
     if not tmdb_ids:
         with open(output_file, "w", encoding="utf-8") as f:
             f.write("#No matching movies found")
         return
-    collection_name = config.get("collection_movie_history", {}).get(
-        "collection_name", "Movie History"
-    )
-    data = {
-        "collections": {
-            collection_name: {
-                "tmdb_movie": tmdb_ids,
-                "summary": "Movies from TMDb filtered by Radarr library",
-            }
-        }
-    }
+
+    tmdb_ids_str = ", ".join(str(i) for i in sorted(tmdb_ids))
+    collection_data = {"summary": summary}
+    for key, value in collection_config.items():
+        if key == "sort_title":
+            collection_data[key] = QuotedString(value)
+        else:
+            collection_data[key] = value
+    collection_data["sync_mode"] = "sync"
+    collection_data["tmdb_movie"] = tmdb_ids_str
+
+    ordered = OrderedDict()
+    ordered["summary"] = collection_data["summary"]
+    if "sort_title" in collection_data:
+        ordered["sort_title"] = collection_data["sort_title"]
+    for key, value in collection_data.items():
+        if key not in ["summary", "sort_title", "sync_mode", "tmdb_movie"]:
+            ordered[key] = value
+    ordered["sync_mode"] = collection_data["sync_mode"]
+    ordered["tmdb_movie"] = collection_data["tmdb_movie"]
+
+    data = {"collections": {collection_name: ordered}}
     with open(output_file, "w", encoding="utf-8") as f:
-        yaml.dump(data, f, sort_keys=False)
+        yaml.dump(data, f, Dumper=yaml.SafeDumper, sort_keys=False)

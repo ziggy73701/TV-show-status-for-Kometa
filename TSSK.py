@@ -6,7 +6,7 @@ import sys
 import os
 from movies_history import (
     process_radarr_url,
-    get_movie_history,
+    get_this_month_in_history,
     create_movie_overlay_yaml,
     create_movie_collection_yaml,
 )
@@ -1411,18 +1411,20 @@ def main():
             "TSSK_TV_RETURNING_COLLECTION.yml", returning_shows, config
         )
 
-        # ---- Movie History ----
-        if tmdb_api_key and radarr_url and radarr_api_key:
-            movie_history = get_movie_history(tmdb_api_key, radarr_url, radarr_api_key)
+        # ---- This Month in History ----
+        if radarr_url and radarr_api_key:
+            month_history = get_this_month_in_history(radarr_url, radarr_api_key)
             create_movie_overlay_yaml(
-                "TSSK_MOVIE_HISTORY_OVERLAYS.yml",
-                movie_history,
-                {"backdrop": config.get("backdrop_movie_history", {}),
-                 "text": config.get("text_movie_history", {})},
+                "TSSK_THIS_MONTH_IN_HISTORY_OVERLAYS.yml",
+                month_history,
+                {
+                    "backdrop": config.get("backdrop_this_month_in_history", {}),
+                    "text": config.get("text_this_month_in_history", {}),
+                },
             )
             create_movie_collection_yaml(
-                "TSSK_MOVIE_HISTORY_COLLECTION.yml",
-                movie_history,
+                "TSSK_THIS_MONTH_IN_HISTORY_COLLECTION.yml",
+                month_history,
                 config,
             )
 

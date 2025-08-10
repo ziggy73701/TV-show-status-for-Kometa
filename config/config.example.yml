@@ -256,10 +256,16 @@ text_final_episode:
   font_color: "#000000"
 
 ################################################################################
-##########                        MOVIE HISTORY:                      ##########
+##########                  THIS MONTH IN HISTORY:                   ##########
 ################################################################################
 
-backdrop_movie_history:
+collection_this_month_in_history:
+  collection_name: "This Month in History"
+  smart_label: title.desc
+  sort_title: "+1_2This Month in History"
+  ignore_blank_results: true
+
+backdrop_this_month_in_history:
   enable: true
   back_color: "#000000"
   back_height: 90
@@ -269,9 +275,9 @@ backdrop_movie_history:
   vertical_align: bottom
   vertical_offset: 20
 
-text_movie_history:
+text_this_month_in_history:
   enable: true
-  use_text: "TRENDING"
+  use_text: "THIS MONTH"
   horizontal_align: center
   horizontal_offset: 0
   vertical_align: bottom
