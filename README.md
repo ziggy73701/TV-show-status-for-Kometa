@@ -185,6 +185,8 @@ For each category, you can change the relevant settings:
 ### This Month in History configuration
 The This Month in History collection and overlay can be customized with three blocks:
 
+Set `movie_release_country` in your main configuration to choose which country's release dates are checked when building this collection. Use an [ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code such as `US` or `GB`.
+
 ```yaml
 collection_this_month_in_history:
   collection_name: "This Month in History"
