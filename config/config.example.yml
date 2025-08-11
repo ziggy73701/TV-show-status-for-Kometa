@@ -286,3 +286,33 @@ text_this_month_in_history:
   vertical_offset: 35
   font_size: 70
   font_color: "#FFFFFF"
+
+################################################################################
+##########                         IN CINEMA:                         ##########
+################################################################################
+
+collection_in_cinema:
+  collection_name: "In Cinema"
+  smart_label: title.desc
+  sort_title: "+1_2In Cinema"
+  ignore_blank_results: true
+
+backdrop_in_cinema:
+  enable: true
+  back_color: "#000000"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_in_cinema:
+  enable: true
+  use_text: "IN CINEMA"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 35
+  font_size: 70
+  font_color: "#FFFFFF"

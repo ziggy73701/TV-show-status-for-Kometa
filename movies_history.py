@@ -138,20 +138,43 @@ def create_movie_overlay_yaml(output_file, movies, config_sections=None):
         yaml.dump(data, f, sort_keys=False)
 
 
-def create_movie_collection_yaml(output_file, movies, config=None):
-    """Create collection YAML for movies using tmdbId identifiers."""
+def create_movie_collection_yaml(
+    output_file,
+    movies,
+    config=None,
+    collection_key="collection_this_month_in_history",
+    default_name="This Month in History",
+    summary="",
+):
+    """Create collection YAML for movies using tmdbId identifiers.
+
+    Parameters
+    ----------
+    output_file : str
+        Name of the YAML file to create.
+    movies : list of dict
+        Movies to include in the collection.
+    config : dict, optional
+        Full configuration dictionary.
+    collection_key : str, optional
+        Key in ``config`` where collection settings are stored.
+    default_name : str, optional
+        Default collection name when ``collection_name`` is not provided.
+    summary : str, optional
+        Summary text for the collection. If empty, the field is omitted.
+    """
     from collections import OrderedDict
 
     if config is None:
         config = {}
+
     output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
+
     tmdb_ids = [m["tmdbId"] for m in movies if m.get("tmdbId")]
-    collection_config = deepcopy(config.get("collection_this_month_in_history", {}))
-    collection_name = collection_config.pop("collection_name", "This Month in History")
-    month_name = datetime.now().strftime("%B")
-    summary = f"Movies released in {month_name} in previous years"
+    collection_config = deepcopy(config.get(collection_key, {}))
+    collection_name = collection_config.pop("collection_name", default_name)
 
     class QuotedString(str):
         pass
@@ -167,17 +190,23 @@ def create_movie_collection_yaml(output_file, movies, config=None):
         return
 
     tmdb_ids_str = ", ".join(str(i) for i in sorted(tmdb_ids))
-    collection_data = {"summary": summary}
+
+    collection_data = {}
+    if summary:
+        collection_data["summary"] = summary
+
     for key, value in collection_config.items():
         if key == "sort_title":
             collection_data[key] = QuotedString(value)
         else:
             collection_data[key] = value
+
     collection_data["sync_mode"] = "sync"
     collection_data["tmdb_movie"] = tmdb_ids_str
 
     ordered = OrderedDict()
-    ordered["summary"] = collection_data["summary"]
+    if "summary" in collection_data:
+        ordered["summary"] = collection_data["summary"]
     if "sort_title" in collection_data:
         ordered["sort_title"] = collection_data["sort_title"]
     for key, value in collection_data.items():
