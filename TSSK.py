@@ -1091,6 +1091,7 @@ def main():
         tmdb_api_key = config.get("tmdb_api_key")
         radarr_url = config.get("radarr_url")
         radarr_api_key = config.get("radarr_api_key")
+        movie_release_country = config.get("movie_release_country")
         if radarr_url and radarr_api_key:
             radarr_url = process_radarr_url(radarr_url, radarr_api_key)
         else:
@@ -1413,7 +1414,9 @@ def main():
 
         # ---- This Month in History ----
         if radarr_url and radarr_api_key:
-            month_history = get_this_month_in_history(radarr_url, radarr_api_key)
+            month_history = get_this_month_in_history(
+                radarr_url, radarr_api_key, tmdb_api_key, movie_release_country
+            )
             create_movie_overlay_yaml(
                 "TSSK_THIS_MONTH_IN_HISTORY_OVERLAYS.yml",
                 month_history,

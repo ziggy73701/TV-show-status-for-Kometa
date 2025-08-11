@@ -40,19 +40,36 @@ def get_radarr_movies(radarr_url, api_key):
     return response.json()
 
 
-def get_this_month_in_history(radarr_url, radarr_api_key):
+def get_this_month_in_history(radarr_url, radarr_api_key, tmdb_api_key, country_code):
     """Return movies from Radarr released in the current month of previous years."""
     radarr_movies = get_radarr_movies(radarr_url, radarr_api_key)
     now = datetime.now()
     current_month = now.month
     movies = []
     for movie in radarr_movies:
-        date_str = (
-            movie.get("inCinemas")
-            or movie.get("physicalRelease")
-            or movie.get("digitalRelease")
-            or movie.get("releaseDate")
-        )
+        tmdb_id = movie.get("tmdbId")
+        date_str = None
+        if tmdb_id and tmdb_api_key and country_code:
+            try:
+                url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/release_dates?api_key={tmdb_api_key}"
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    for result in data.get("results", []):
+                        if result.get("iso_3166_1") == country_code:
+                            rel_dates = result.get("release_dates", [])
+                            if rel_dates:
+                                date_str = rel_dates[0].get("release_date")
+                            break
+            except requests.exceptions.RequestException:
+                pass
+        if not date_str:
+            date_str = (
+                movie.get("inCinemas")
+                or movie.get("physicalRelease")
+                or movie.get("digitalRelease")
+                or movie.get("releaseDate")
+            )
         if not date_str:
             continue
         try:
@@ -60,7 +77,7 @@ def get_this_month_in_history(radarr_url, radarr_api_key):
         except ValueError:
             continue
         if date.month == current_month and date.year < now.year:
-            movies.append({"title": movie.get("title"), "tmdbId": movie.get("tmdbId")})
+            movies.append({"title": movie.get("title"), "tmdbId": tmdb_id})
     return movies
 
 

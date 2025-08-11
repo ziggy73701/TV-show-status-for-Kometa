@@ -1,6 +1,7 @@
 sonarr_url: 'http://localhost:8989'
 sonarr_api_key: 'YOUR_SONARR_API_KEY'
 tmdb_api_key: 'YOUR_TMDB_API_KEY'
+movie_release_country: 'US'
 radarr_url: 'http://localhost:7878'
 radarr_api_key: 'YOUR_RADARR_API_KEY'
 
