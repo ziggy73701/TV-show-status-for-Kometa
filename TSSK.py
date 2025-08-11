@@ -10,6 +10,7 @@ from movies_history import (
     create_movie_overlay_yaml,
     create_movie_collection_yaml,
 )
+from movies_in_theaters import get_in_theaters
 
 
 # Constants

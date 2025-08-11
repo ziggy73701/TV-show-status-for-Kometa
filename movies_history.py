@@ -1,3 +1,10 @@
+"""Helpers for historical movie queries.
+
+This module contains utilities that operate on past release data. Functions
+for movies that are currently playing in theaters live in
+``movies_in_theaters``.
+"""
+
 import os
 from datetime import datetime
 import requests
@@ -41,7 +48,11 @@ def get_radarr_movies(radarr_url, api_key):
 
 
 def get_this_month_in_history(radarr_url, radarr_api_key, tmdb_api_key, country_code):
-    """Return movies from Radarr released in the current month of previous years."""
+    """Return movies from Radarr released in the current month of previous years.
+
+    For movies currently in theaters, see
+    :func:`movies_in_theaters.get_in_theaters`.
+    """
     radarr_movies = get_radarr_movies(radarr_url, radarr_api_key)
     now = datetime.now()
     current_month = now.month
