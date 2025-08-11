@@ -24,6 +24,7 @@ Example overlays:
 - ℹ️ **Informs**: Lists matched and skipped(unmonitored) TV shows.
 - 📝 **Creates .yml**: Creates collection and overlay files which can be used with Kometa.
 - 🎬 **Movie support**: Filters TMDb movie lists through Radarr so only owned titles are used.
+- 🍿 **In Cinema tracking**: Build collections and overlays for movies currently in theaters.
 
 ---
 
@@ -202,6 +203,30 @@ backdrop_this_month_in_history:
 text_this_month_in_history:
   enable: true   # disable to remove text overlay
   use_text: "THIS MONTH"
+  font_size: 70
+  font_color: "#FFFFFF"
+```
+
+Set `enable: false` on the backdrop or text block to omit that part of the overlay.
+
+### In Cinema configuration
+The In Cinema collection and overlay can be customized with three blocks:
+
+```yaml
+collection_in_cinema:
+  collection_name: "In Cinema"
+  smart_label: title.desc
+  sort_title: "+1_2In Cinema"
+  ignore_blank_results: true
+
+backdrop_in_cinema:
+  enable: true   # disable to skip the colored backdrop
+  back_color: "#000000"
+  back_height: 90
+
+text_in_cinema:
+  enable: true   # disable to remove text overlay
+  use_text: "IN CINEMA"
   font_size: 70
   font_color: "#FFFFFF"
 ```

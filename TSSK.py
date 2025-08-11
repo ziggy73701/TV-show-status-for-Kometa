@@ -1418,6 +1418,7 @@ def main():
             month_history = get_this_month_in_history(
                 radarr_url, radarr_api_key, tmdb_api_key, movie_release_country
             )
+            month_name = datetime.now().strftime("%B")
             create_movie_overlay_yaml(
                 "TSSK_THIS_MONTH_IN_HISTORY_OVERLAYS.yml",
                 month_history,
@@ -1430,6 +1431,29 @@ def main():
                 "TSSK_THIS_MONTH_IN_HISTORY_COLLECTION.yml",
                 month_history,
                 config,
+                "collection_this_month_in_history",
+                "This Month in History",
+                f"Movies released in {month_name} in previous years",
+            )
+
+            in_theaters = get_in_theaters(
+                radarr_url, radarr_api_key, tmdb_api_key, movie_release_country
+            )
+            create_movie_overlay_yaml(
+                "TSSK_IN_CINEMA_OVERLAYS.yml",
+                in_theaters,
+                {
+                    "backdrop": config.get("backdrop_in_cinema", {}),
+                    "text": config.get("text_in_cinema", {}),
+                },
+            )
+            create_movie_collection_yaml(
+                "TSSK_IN_CINEMA_COLLECTION.yml",
+                in_theaters,
+                config,
+                "collection_in_cinema",
+                "In Cinema",
+                "Movies currently in cinemas",
             )
 
         print(f"\nAll YAML files created successfully")
