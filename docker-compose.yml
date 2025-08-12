@@ -1,13 +1,14 @@
 version: "3.8"
-
-services:
   tssk:
-    image: timothe/tssk:latest
+    image: ziggy73701/tssk:latest
     container_name: tssk
     environment:
+      - PUID=1000
+      - GUID=1000
+      - TZ=Europe/London
       - CRON=0 2 * * * # every day at 2am
-      - DOCKER=true # important for path reference
     volumes:
-      - /your/local/config/tssk:/app/config
-      - /your/local/kometa/config:/config/kometa
-    restart: unless-stopped
+      - /your/local/tssk/config:/app/config
+      - /your/local/tssk/yaml:/app/kometa
+      - /your/local/config:/config/kometa
+    restart: unless-stopped 
