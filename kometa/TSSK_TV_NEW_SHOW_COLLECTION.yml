@@ -1,0 +1,8 @@
+collections:
+  New Show Soon:
+    summary: Shows with a first season starting within 31 days
+    sort_title: "+1_2New Show Soon"
+    smart_label: title.desc
+    ignore_blank_results: true
+    sync_mode: sync
+    tvdb_show: 400123, 400456

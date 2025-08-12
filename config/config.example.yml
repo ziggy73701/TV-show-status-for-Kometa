@@ -10,6 +10,39 @@ skip_unmonitored: true
 utc_offset: +0
 
 ################################################################################
+##########                         NEW SHOW:                          ##########
+################################################################################
+
+future_days_new_show: 31
+
+collection_new_show:
+  collection_name: "New Show Soon"
+  smart_label: title.desc
+  sort_title: "+1_2New Show Soon"
+  ignore_blank_results: true
+
+backdrop_new_show:
+  enable: true
+  back_color: "#1E90FF"
+  back_height: 90
+  back_width: 950
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 20
+
+text_new_show:
+  date_format: "ddd dd/mm"
+  capitalize_dates: true
+  use_text: "NEW SHOW"
+  horizontal_align: center
+  horizontal_offset: 0
+  vertical_align: bottom
+  vertical_offset: 35
+  font_size: 70
+  font_color: "#FFFFFF"
+
+################################################################################
 ##########                        NEW SEASON:                         ##########
 ################################################################################
 

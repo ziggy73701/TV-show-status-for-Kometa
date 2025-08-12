@@ -945,6 +945,9 @@ def create_collection_yaml(output_file, shows, config):
     elif "FINAL_EPISODE" in output_file:
         config_key = "collection_final_episode"
         summary = f"Shows with a final episode that aired within the past {config.get('recent_days_final_episode', 21)} days"
+    elif "NEW_SHOW" in output_file:
+        config_key = "collection_new_show"
+        summary = f"Shows with a first season starting within {config.get('future_days_new_show', 31)} days"
     elif "NEW_SEASON" in output_file:
         config_key = "collection_new_season"
         summary = f"Shows with a new season starting within {config.get('future_days_new_season', 31)} days"
@@ -1078,6 +1081,7 @@ def main():
         # Get category-specific future_days values, with fallback to main future_days
         future_days = config.get("future_days", 14)
         future_days_new_season = config.get("future_days_new_season", future_days)
+        future_days_new_show = config.get("future_days_new_show", future_days)
         future_days_upcoming_episode = config.get(
             "future_days_upcoming_episode", future_days
         )
@@ -1103,6 +1107,7 @@ def main():
             radarr_url = None
 
         # Print chosen values
+        print(f"future_days_new_show: {future_days_new_show}")
         print(f"future_days_new_season: {future_days_new_season}")
         print(f"future_days_upcoming_episode: {future_days_upcoming_episode}")
         print(f"future_days_upcoming_finale: {future_days_upcoming_finale}")
@@ -1185,24 +1190,41 @@ def main():
         # Track all tvdbIds to exclude from the "returning" category
         all_included_tvdb_ids = set()
 
-        # ---- New Season Shows ----
+
+        # ---- New Season and New Show ----
+        search_days = max(future_days_new_season, future_days_new_show)
         matched_shows, skipped_shows = find_new_season_shows(
             sonarr_url,
             sonarr_api_key,
-            future_days_new_season,
+            search_days,
             utc_offset,
             skip_unmonitored,
         )
 
-        # Filter out shows that are in the season finale or final episode categories
+        new_show_shows = [s for s in skipped_shows if s.get("reason") == "New show (Season 1)"]
+        skipped_shows = [s for s in skipped_shows if s.get("reason") != "New show (Season 1)"]
+
+        cutoff_new_season = (
+            datetime.now(timezone.utc) + timedelta(days=future_days_new_season)
+        ).date().isoformat()
+        cutoff_new_show = (
+            datetime.now(timezone.utc) + timedelta(days=future_days_new_show)
+        ).date().isoformat()
+
         matched_shows = [
             show
             for show in matched_shows
             if show.get("tvdbId") not in all_excluded_tvdb_ids
+            and show.get("airDate") <= cutoff_new_season
+        ]
+        new_show_shows = [
+            show
+            for show in new_show_shows
+            if show.get("tvdbId") not in all_excluded_tvdb_ids
+            and show.get("airDate") <= cutoff_new_show
         ]
 
-        # Add to excluded IDs for returning category
-        for show in matched_shows:
+        for show in matched_shows + new_show_shows:
             if show.get("tvdbId"):
                 all_included_tvdb_ids.add(show["tvdbId"])
 
@@ -1219,14 +1241,39 @@ def main():
                 f"\n{RED}No shows with new seasons starting within {future_days_new_season} days.{RESET}"
             )
 
+        if new_show_shows:
+            print(
+                f"\n{GREEN}New shows starting within {future_days_new_show} days:{RESET}"
+            )
+            for show in new_show_shows:
+                print(
+                    f"- {show['title']} (Season {show['seasonNumber']}) airs on {show['airDate']}"
+                )
+        else:
+            print(
+                f"\n{RED}No new shows starting within {future_days_new_show} days.{RESET}"
+            )
+
         if skipped_shows:
-            print(f"\n{ORANGE}Skipped shows (unmonitored or new show):{RESET}")
+            print(f"\n{ORANGE}Skipped shows (unmonitored):{RESET}")
             for show in skipped_shows:
                 print(
                     f"- {show['title']} (Season {show['seasonNumber']}) airs on {show['airDate']}"
                 )
 
-        # Create YAMLs for new seasons
+        create_overlay_yaml(
+            "TSSK_TV_NEW_SHOW_OVERLAYS.yml",
+            new_show_shows,
+            {
+                "backdrop": config.get("backdrop_new_show", config.get("backdrop", {})),
+                "text": config.get("text_new_show", config.get("text", {})),
+            },
+        )
+
+        create_collection_yaml(
+            "TSSK_TV_NEW_SHOW_COLLECTION.yml", new_show_shows, config
+        )
+
         create_overlay_yaml(
             "TSSK_TV_NEW_SEASON_OVERLAYS.yml",
             matched_shows,
@@ -1241,6 +1288,7 @@ def main():
         create_collection_yaml(
             "TSSK_TV_NEW_SEASON_COLLECTION.yml", matched_shows, config
         )
+
 
         # ---- Upcoming Non-Finale Episodes ----
         upcoming_eps, skipped_eps = find_upcoming_regular_episodes(

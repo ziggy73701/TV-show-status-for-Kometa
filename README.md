@@ -12,6 +12,7 @@ Categories:
 *  Shows for which a finale was added which aired in the past x days
 *  Shows with upcoming regular episodes within x days
 *  Shows for which a new season is airing within x days
+*  New Shows with a premiere within x days
 *  Shows with upcoming season finales within x days
 *  Returning Shows (new episodes or seasons are coming, but not within the timeframes chosen above)
 *  Ended Shows (no new episodes or seasons are expected)
@@ -22,7 +23,7 @@ Example overlays:
 ---
 
 ## ✨ Features
-- 🗓️ **Detects upcoming episodes, finales and seasons**: Searches Sonarr for TV show schedules.
+- 🗓️ **Detects upcoming episodes, finales, new shows and seasons**: Searches Sonarr for TV show schedules.
 - 🏁 **Aired Finale labelling**: Use a separate overlay for shows for which a Finale was added.
 -  ▼ **Filters out unmonitored**: Skips show if season/episode is unmonitored. (optional)
 -  🪄 **Customizable**: Change date format, collection name, overlay positioning, text, ..
@@ -123,6 +124,7 @@ In your Kometa config, include the following lines under your `TV Shows` library
 ```yaml
 TV Shows:
   overlay_files:
+    - file: /config/tssk/TSSK_TV_NEW_SHOW_OVERLAYS.yml
     - file: /config/tssk/TSSK_TV_NEW_SEASON_OVERLAYS.yml
     - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
     - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
@@ -132,6 +134,7 @@ TV Shows:
     - file: /config/tssk/TSSK_TV_CANCELLED_OVERLAYS.yml
     - file: /config/tssk/TSSK_TV_RETURNING_OVERLAYS.yml
   collection_files:
+    - file: /config/tssk/TSSK_TV_NEW_SHOW_COLLECTION.yml
     - file: /config/tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
     - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
     - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
