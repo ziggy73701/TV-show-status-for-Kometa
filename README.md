@@ -289,20 +289,3 @@ The previous configuration will be erased so Kometa will automatically remove ov
 > You can also use this batch file to [schedule](https://www.windowscentral.com/how-create-automated-task-using-task-scheduler-windows-10) the script to run.
 ---
 
-
-### ⚠️ **Do you Need Help or have Feedback?**
-- Join the [Discord](https://discord.gg/VBNUJd7tx3).
-
----
-## ？ FAQ
-**Is there a docker container?**<br/>
-I made this for my personal use. I don't use docker myself and have no plans atm to learn how to make dockerfiles.<br/>
-If anyone wants to help make one, please feel free to create a pull request!
-  
----  
-### ❤️ Support the Project
-If you like this project, please ⭐ star the repository and share it with the community!
-
-<br/>
-
-[!["Buy Me A Coffee"](https://github.com/user-attachments/assets/5c30b977-2d31-4266-830e-b8c993996ce7)](https://www.buymeacoffee.com/neekokeen)
