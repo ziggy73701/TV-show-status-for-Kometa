@@ -12,6 +12,7 @@ Categories:
 *  Shows for which a finale was added which aired in the past x days
 *  Shows with upcoming regular episodes within x days
 *  Shows for which a new season is airing within x days
+*  New Shows with a premiere within x days
 *  Shows with upcoming season finales within x days
 *  Returning Shows (new episodes or seasons are coming, but not within the timeframes chosen above)
 *  Ended Shows (no new episodes or seasons are expected)
@@ -22,7 +23,7 @@ Example overlays:
 ---
 
 ## ✨ Features
-- 🗓️ **Detects upcoming episodes, finales and seasons**: Searches Sonarr for TV show schedules.
+- 🗓️ **Detects upcoming episodes, finales, new shows and seasons**: Searches Sonarr for TV show schedules.
 - 🏁 **Aired Finale labelling**: Use a separate overlay for shows for which a Finale was added.
 -  ▼ **Filters out unmonitored**: Skips show if season/episode is unmonitored. (optional)
 -  🪄 **Customizable**: Change date format, collection name, overlay positioning, text, ..
@@ -113,8 +114,8 @@ Refer to the note above for where the files are saved depending on your setup.
 
 The `.yml` files created by TSSK that Kometa uses are stored in different folders depending on how you're running the script:
 
-- **Manual install**: files are saved directly to `kometa/` inside your TSSK folder (e.g. `TSSK/kometa/`)
-- **Docker install**: files are saved to `/config/kometa/tssk/` inside the container — assuming you mount your Kometa config folder to `/config`
+- **Manual install**: files are saved under `kometa/<type>/<kind>/` inside your TSSK folder (e.g. `TSSK/kometa/tv/overlays/`)
+- **Docker install**: files are saved to `/config/kometa/tssk/<type>/<kind>/` inside the container — assuming you mount your Kometa config folder to `/config`
 
 Make sure your Kometa config uses the correct path to reference those files.
 
@@ -123,23 +124,37 @@ In your Kometa config, include the following lines under your `TV Shows` library
 ```yaml
 TV Shows:
   overlay_files:
-    - file: /config/tssk/TSSK_TV_NEW_SEASON_OVERLAYS.yml
-    - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
-    - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
-    - file: /config/tssk/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
-    - file: /config/tssk/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
-    - file: /config/tssk/TSSK_TV_ENDED_OVERLAYS.yml
-    - file: /config/tssk/TSSK_TV_CANCELLED_OVERLAYS.yml
-    - file: /config/tssk/TSSK_TV_RETURNING_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_NEW_SHOW_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_NEW_SEASON_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_ENDED_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_CANCELLED_OVERLAYS.yml
+    - file: /config/tssk/tv/overlays/TSSK_TV_RETURNING_OVERLAYS.yml
   collection_files:
-    - file: /config/tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
-    - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
-    - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
-    - file: /config/tssk/TSSK_TV_SEASON_FINALE_COLLECTION.yml
-    - file: /config/tssk/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
-    - file: /config/tssk/TSSK_TV_ENDED_COLLECTION.yml
-    - file: /config/tssk/TSSK_TV_CANCELLED_COLLECTION.yml
-    - file: /config/tssk/TSSK_TV_RETURNING_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_NEW_SHOW_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_NEW_SEASON_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_SEASON_FINALE_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_ENDED_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_CANCELLED_COLLECTION.yml
+    - file: /config/tssk/tv/collections/TSSK_TV_RETURNING_COLLECTION.yml
+```
+
+For your `Movies` library:
+
+```yaml
+Movies:
+  overlay_files:
+    - file: /config/tssk/movies/overlays/TSSK_THIS_MONTH_IN_HISTORY_OVERLAYS.yml
+    - file: /config/tssk/movies/overlays/TSSK_IN_CINEMA_OVERLAYS.yml
+  collection_files:
+    - file: /config/tssk/movies/collections/TSSK_THIS_MONTH_IN_HISTORY_COLLECTION.yml
+    - file: /config/tssk/movies/collections/TSSK_IN_CINEMA_COLLECTION.yml
 ```
 
 > [!TIP]

@@ -96,7 +96,8 @@ def create_movie_overlay_yaml(output_file, movies, config_sections=None):
     """Create overlay YAML for movies using tmdbId identifiers."""
     if config_sections is None:
         config_sections = {}
-    output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
+    base_dir = "/config/kometa/tssk" if IS_DOCKER else "kometa"
+    output_dir = os.path.join(base_dir, "movies", "overlays")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
     if not movies:
@@ -168,7 +169,8 @@ def create_movie_collection_yaml(
     if config is None:
         config = {}
 
-    output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
+    base_dir = "/config/kometa/tssk" if IS_DOCKER else "kometa"
+    output_dir = os.path.join(base_dir, "movies", "collections")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
 
