@@ -26,6 +26,22 @@ Example overlays:
 - 🎬 **Movie support**: Filters TMDb movie lists through Radarr so only owned titles are used.
 - 🍿 **In Cinema tracking**: Build collections and overlays for movies currently in theaters.
 
+## 🔄 Version Control
+
+The script checks GitHub releases to let you know when a newer version is available. By default it
+looks for updates in the `netplexflix/TV-show-status-for-Kometa` repository. Set the
+`GITHUB_REPO` environment variable to point to your own fork if you want the script to track your
+releases instead.
+
+### Creating a Release
+
+1. Tag the commit you want to release, e.g. `git tag v2.1` and push the tag to GitHub.
+2. On GitHub, open the **Releases** section and click **Draft a new release**.
+3. Select the tag (such as `v2.1`), add release notes, and publish the release. The tag name minus
+   the leading `v` is used as the version number the script compares against.
+
+When the script runs, it will query GitHub and inform you if a newer tagged release is available.
+
 ---
 
 ## 🛠️ Installation

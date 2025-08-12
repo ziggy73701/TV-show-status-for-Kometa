@@ -15,7 +15,11 @@ from movies_in_theaters import get_in_theaters
 
 # Constants
 IS_DOCKER = os.getenv("DOCKER", "false").lower() == "true"
-VERSION = "1.8"
+VERSION = "2.1"
+# Repository used for version checks
+GITHUB_REPO = os.getenv(
+    "GITHUB_REPO", "netplexflix/TV-show-status-for-Kometa"
+)
 
 # ANSI color codes
 GREEN = "\033[32m"
@@ -27,11 +31,11 @@ BOLD = "\033[1m"
 
 
 def check_for_updates():
-    print(f"Checking for updates to TSSK {VERSION}...")
+    print(f"Checking for updates to TSSK {VERSION} from {GITHUB_REPO}...")
 
     try:
         response = requests.get(
-            "https://api.github.com/repos/netplexflix/TV-show-status-for-Kometa/releases/latest",
+            f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest",
             timeout=10,
         )
         response.raise_for_status()
