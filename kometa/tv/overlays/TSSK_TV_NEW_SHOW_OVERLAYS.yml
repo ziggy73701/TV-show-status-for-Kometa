@@ -1,0 +1,32 @@
+overlays:
+  backdrop:
+    overlay:
+      back_color: '#1E90FF'
+      back_height: 70
+      back_width: 944
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      name: backdrop
+    tvdb_show: 400123, 400456
+  TSSK_MON 01/09:
+    overlay:
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      font_size: 69
+      font_color: '#000000'
+      name: text(NEW SHOW MON 01/09)
+    tvdb_show: '400123'
+  TSSK_TUE 02/09:
+    overlay:
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      font_size: 69
+      font_color: '#000000'
+      name: text(NEW SHOW TUE 02/09)
+    tvdb_show: '400456'

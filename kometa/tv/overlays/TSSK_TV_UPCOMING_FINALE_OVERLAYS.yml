@@ -1,0 +1,52 @@
+overlays:
+  backdrop:
+    overlay:
+      back_color: '#9932CC'
+      back_height: 70
+      back_width: 944
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      name: backdrop
+    tvdb_show: 71998, 275274, 289574, 326124, 366211
+  TSSK_FRI 25/07:
+    overlay:
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      font_size: 69
+      font_color: '#000000'
+      name: text(FINALE AIRS FRI 25/07)
+    tvdb_show: 71998, 289574
+  TSSK_MON 28/07:
+    overlay:
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      font_size: 69
+      font_color: '#000000'
+      name: text(FINALE AIRS MON 28/07)
+    tvdb_show: '275274'
+  TSSK_WED 30/07:
+    overlay:
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      font_size: 69
+      font_color: '#000000'
+      name: text(FINALE AIRS WED 30/07)
+    tvdb_show: '326124'
+  TSSK_THU 31/07:
+    overlay:
+      horizontal_align: center
+      horizontal_offset: 0
+      vertical_align: top
+      vertical_offset: 28
+      font_size: 69
+      font_color: '#000000'
+      name: text(FINALE AIRS THU 31/07)
+    tvdb_show: '366211'

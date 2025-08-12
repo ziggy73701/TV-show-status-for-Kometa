@@ -1,0 +1,9 @@
+collections:
+  Upcoming Episode:
+    summary: Shows with an upcoming episode within 31 days
+    sort_title: "+1_2Upcoming Episode"
+    smart_label: title.desc
+    ignore_blank_results: true
+    sync_mode: sync
+    tvdb_show: 72231, 75897, 270261, 274453, 368166, 382389, 435078, 451177, 452595,
+      462463

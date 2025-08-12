@@ -832,7 +832,8 @@ def create_overlay_yaml(output_file, shows, config_sections):
     from datetime import datetime
 
     # Ensure the directory exists
-    output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
+    base_dir = "/config/kometa/tssk" if IS_DOCKER else "kometa"
+    output_dir = os.path.join(base_dir, "tv", "overlays")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
 
@@ -925,7 +926,8 @@ def create_collection_yaml(output_file, shows, config):
     from collections import OrderedDict
 
     # Ensure the directory exists
-    output_dir = "/config/kometa/tssk/" if IS_DOCKER else "kometa/"
+    base_dir = "/config/kometa/tssk" if IS_DOCKER else "kometa"
+    output_dir = os.path.join(base_dir, "tv", "collections")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, output_file)
 

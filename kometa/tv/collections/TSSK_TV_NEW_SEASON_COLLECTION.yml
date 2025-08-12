@@ -1,0 +1,8 @@
+collections:
+  New Season Soon:
+    summary: Shows with a new season starting within 31 days
+    sort_title: "+1_2New Season Soon"
+    smart_label: title.desc
+    ignore_blank_results: true
+    sync_mode: sync
+    tvdb_show: 82918, 366532, 391153, 404492

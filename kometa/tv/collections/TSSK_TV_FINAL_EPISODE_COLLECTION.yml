@@ -1,0 +1,8 @@
+collections:
+  Final Episode:
+    plex_search:
+      all:
+        label: Final Episode
+    item_label.remove: Final Episode
+    smart_label: random
+    build_collection: false

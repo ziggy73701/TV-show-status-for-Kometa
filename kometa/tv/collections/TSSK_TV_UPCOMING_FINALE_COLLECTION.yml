@@ -1,0 +1,8 @@
+collections:
+  Upcoming Finale:
+    summary: Shows with a season finale within 31 days
+    sort_title: "+1_2Upcoming Finale"
+    smart_label: title.desc
+    ignore_blank_results: true
+    sync_mode: sync
+    tvdb_show: 71998, 275274, 289574, 326124, 366211

@@ -1,0 +1,8 @@
+collections:
+  Season Finale:
+    summary: Shows with a season finale that aired within the past 7 days
+    sort_title: "+1_2Season Finale"
+    smart_label: title.desc
+    ignore_blank_results: true
+    sync_mode: sync
+    tvdb_show: 75978, 80411, 455562
