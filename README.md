@@ -124,6 +124,7 @@ In your Kometa config, include the following lines under your `TV Shows` library
 ```yaml
 TV Shows:
   overlay_files:
+ <<<<<< kt1su4-codex/update-overlays-for-new-collections
     - file: /config/tssk/tv/overlays/TSSK_TV_NEW_SHOW_OVERLAYS.yml
     - file: /config/tssk/tv/overlays/TSSK_TV_NEW_SEASON_OVERLAYS.yml
     - file: /config/tssk/tv/overlays/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
@@ -155,6 +156,27 @@ Movies:
   collection_files:
     - file: /config/tssk/movies/collections/TSSK_THIS_MONTH_IN_HISTORY_COLLECTION.yml
     - file: /config/tssk/movies/collections/TSSK_IN_CINEMA_COLLECTION.yml
+======
+    - file: /config/tssk/TSSK_TV_NEW_SHOW_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_NEW_SEASON_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_SEASON_FINALE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_FINAL_EPISODE_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_ENDED_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_CANCELLED_OVERLAYS.yml
+    - file: /config/tssk/TSSK_TV_RETURNING_OVERLAYS.yml
+  collection_files:
+    - file: /config/tssk/TSSK_TV_NEW_SHOW_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_NEW_SEASON_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_EPISODE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_UPCOMING_FINALE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_SEASON_FINALE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_FINAL_EPISODE_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_ENDED_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_CANCELLED_COLLECTION.yml
+    - file: /config/tssk/TSSK_TV_RETURNING_COLLECTION.yml
+>>>>>> main
 ```
 
 > [!TIP]
