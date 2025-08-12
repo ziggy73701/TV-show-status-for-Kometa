@@ -210,6 +210,9 @@ text_this_month_in_history:
 Set `enable: false` on the backdrop or text block to omit that part of the overlay.
 
 ### In Cinema configuration
+>[!NOTE]
+> Only movies present in Radarr appear in the list.
+
 The In Cinema collection and overlay can be customized with three blocks:
 
 ```yaml
