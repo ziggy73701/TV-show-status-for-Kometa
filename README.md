@@ -1,6 +1,12 @@
 # 📺 TV Show Status for Kometa
 
-This script checks your [Sonarr](https://sonarr.tv/) for your TV Shows statuses and creates .yml files which can be used by [Kometa](https://kometa.wiki/) to create collections and overlays.</br>
+This is a fork of https://github.com/netplexflix/TV-show-status-for-Kometa and all credit goes to the original author, as a user of https://github.com/InsertDisc/pattrmm for quite some time I wanted something that brought
+in a mix of funtionality. I have since expanded out to include new collections and features and will continue to do so.
+
+This script checks your [Sonarr](https://sonarr.tv/) and [Radarr](https://radarr.video/) for your TV Shows and Movie statuses and creates .yml files which can be used by [Kometa](https://kometa.wiki/) 
+to create collections and overlays.</br>
+
+If you dont use Radarr or Sonarr in your setup I can highly reccomend it, even if you dont configure for auto download it has a lot of useful features.
 
 Categories:
 *  Shows for which a finale was added which aired in the past x days
@@ -25,25 +31,7 @@ Example overlays:
 - 📝 **Creates .yml**: Creates collection and overlay files which can be used with Kometa.
 - 🎬 **Movie support**: Filters TMDb movie lists through Radarr so only owned titles are used.
 - 🍿 **In Cinema tracking**: Build collections and overlays for movies currently in theaters.
-
-## 🔄 Version Control
-
-The script checks GitHub releases to let you know when a newer version is available. By default it
-looks for updates in the `netplexflix/TV-show-status-for-Kometa` repository. Set the
-`GITHUB_REPO` environment variable to point to your own fork if you want the script to track your
-releases instead.
-
-### Creating a Release
-
-1. Tag the commit you want to release, e.g. `git tag v2.1` and push the tag to GitHub.
-2. On GitHub, open the **Releases** section and click **Draft a new release**.
-3. Select the tag (such as `v2.1`), add release notes, and publish the release. The tag name minus
-   the leading `v` is used as the version number the script compares against.
-
-When the script runs, it will query GitHub and inform you if a newer tagged release is available.
-
----
-
+- 🍿 **This Month in History**: Build collections and overlays for movies based on month released.
 ## 🛠️ Installation
 
 ### Choose your install method:
@@ -54,7 +42,7 @@ When the script runs, it will query GitHub and inform you if a newer tagged rele
 
 1. Clone the repo:
 ```sh
-git clone https://github.com/netplexflix/TV-show-status-for-Kometa.git
+git clone https://github.com/Ziggy73701/TV-show-status-for-Kometa.git
 cd TV-show-status-for-Kometa
 ```
 
@@ -87,7 +75,7 @@ docker compose up -d
 ```
 
 This will:
-- Pull the latest `timothe/tssk` image from Docker Hub
+- Pull the latest `Ziggy73701/tssk` image from Docker Hub
 - Run the script on a daily schedule (by default at 2AM)
 - Mount your configuration and output directories into the container
 
@@ -103,7 +91,7 @@ version: "3.8"
 
 services:
   tssk:
-    image: timothe/tssk:latest
+    image: Ziggy73701/tssk:latest
     container_name: tssk
     environment:
       - CRON=0 2 * * * # every day at 2am

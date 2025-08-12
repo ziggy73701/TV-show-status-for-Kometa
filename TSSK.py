@@ -18,7 +18,7 @@ IS_DOCKER = os.getenv("DOCKER", "false").lower() == "true"
 VERSION = "2.1"
 # Repository used for version checks
 GITHUB_REPO = os.getenv(
-    "GITHUB_REPO", "netplexflix/TV-show-status-for-Kometa"
+    "GITHUB_REPO", "Ziggy73701/TV-show-status-for-Kometa"
 )
 
 # ANSI color codes
