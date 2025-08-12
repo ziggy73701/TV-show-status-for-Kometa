@@ -291,6 +291,7 @@ text_this_month_in_history:
 ##########                         IN CINEMA:                         ##########
 ################################################################################
 
+# Only movies present in Radarr appear in this list.
 collection_in_cinema:
   collection_name: "In Cinema"
   smart_label: title.desc
