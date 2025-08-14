@@ -963,7 +963,7 @@ def create_collection_yaml(output_file, shows, config):
         config_key = "collection_ended"
         summary = "Shows that have completed their run"
     elif "TV_CANCELLED" in output_file:
-        config_key = "cancelled_shows"
+        config_key = "collection_cancelled"
         summary = "Shows that where cancelled or not renewed before completing their run"
     elif "RETURNING" in output_file:
         config_key = "collection_returning"
@@ -1436,9 +1436,7 @@ def main():
             },
         )
 
-        create_collection_yaml(
-            "TSSK_TV_CANCELLED_COLLECTION.yml", cancelled_shows, config
-        )
+        create_collection_yaml("TSSK_TV_CANCELLED_COLLECTION.yml", cancelled_shows, config)
 
         # ---- Returning Shows ----
         returning_shows = find_returning_shows(
